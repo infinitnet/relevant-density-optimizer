@@ -1,0 +1,25 @@
+.highlight-term {
+    background-color: lightgreen;
+}
+
+.relevant-density {
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.term-frequency {
+    margin-top: 5px;
+    padding: 3px;
+    display: inline-block;
+    border-radius: 4px;
+    margin-right: 2px;
+    margin-bottom: 2px;
+}
+
+.term-frequency[style*="lightgreen"] {
+    background-color: lightgreen;
+}
+
+.term-frequency[style*="lightred"] {
+    background-color: lightcoral;
+}
