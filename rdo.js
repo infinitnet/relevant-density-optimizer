@@ -284,6 +284,8 @@ wp.plugins.registerPlugin('relevant-density-optimizer', {
 });
 
 let globalHighlightingState = false;
+let lastComputedContent = '';
+let lastComputedTerms = '';
 
 const handleEditorChange = () => {
     const newContent = selectData('core/editor').getEditedPostContent();
