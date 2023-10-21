@@ -1,20 +1,27 @@
 <?php
 /**
  * Plugin Name: Relevant Density Optimizer
- * Description: Highlight relevant terms in Gutenberg editor and optimize density.
+ * Description: Highlight relevant terms in Gutenberg editor and optimize density for SEO.
  * Author: Infinitnet
- * Version: 1.6
+ * Author URI: https://infinitnet.io/
+ * Plugin URI: https://infinitnet.io/relevant-density-optimizer/
+ * Update URI: https://github.com/infinitnet/relevant-density-optimizer
+ * Version: 1.6.1
+ * License: GPLv3
+ * Text Domain: relevant-density-optimizer
  */
 
+namespace Infinitnet\RDO;
+
+define('RDO_VERSION', '1.6.1');
+
 function rdo_enqueue_block_editor_assets() {
-    if (!wp_script_is('rdo-editor-js', 'enqueued')) {
-        wp_enqueue_script('rdo-editor-js', plugin_dir_url(__FILE__) . 'editor.js', array('wp-plugins', 'wp-edit-post', 'wp-element', 'wp-data', 'wp-compose', 'wp-components'), '1.1', true);
+    if (!wp_script_is('rdo-plugin-js', 'enqueued')) {
+        wp_enqueue_script('rdo-plugin-js', plugin_dir_url(__FILE__) . 'rdo.js', array('wp-plugins', 'wp-edit-post', 'wp-element', 'wp-data', 'wp-compose', 'wp-components'), RDO_VERSION, true);
     }
 
-    wp_enqueue_style('rdo-editor-css', plugin_dir_url(__FILE__) . 'editor.css', array(), '1.1');
+    wp_enqueue_style('rdo-plugin-css', plugin_dir_url(__FILE__) . 'rdo.css', array(), RDO_VERSION);
 }
-
-add_action('enqueue_block_editor_assets', 'rdo_enqueue_block_editor_assets');
 
 function rdo_register_meta() {
     register_meta('post', '_important_terms', array(
@@ -27,4 +34,5 @@ function rdo_register_meta() {
     ));
 }
 
-add_action('init', 'rdo_register_meta');
+add_action('enqueue_block_editor_assets', __NAMESPACE__ . '\rdo_enqueue_block_editor_assets');
+add_action('init', __NAMESPACE__ . '\rdo_register_meta');
