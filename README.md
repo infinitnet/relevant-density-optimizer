@@ -11,6 +11,8 @@
 - **Click to copy:** Clicking on one of the terms in the terms list copies it to your clipboard.
 - **Auto clean-up:** Automatically turns terms into lower case and removes duplicates, blank lines, etc.
 
+## Screenshot
+
 ![Relevant Density Optimizer screenshot](https://infinitnet.io/wp-content/uploads/2023/10/relevant-density-optimizer-screenshot.png)
 
 ## Installation
