@@ -9,7 +9,7 @@
 - **Term counts:** List of terms and how often each of them appears within the Gutenberg editor. If the term count is above zero, the term turns green. If the term is missing from the content, it's red.
 - **Search, sort, and filter options:** You can search for terms within the terms list, show unused (missing) terms only, order the list alphabetically or ascending or descending based on term count.
 - **Click to copy:** Clicking on one of the terms in the terms list copies it to your clipboard.
-- **Auto clean-up:** Automatically turns terms into lower case and removes duplicates, blank lines, etc.
+- **Auto clean-up:** Automatically turns commas into line breaks, terms into lower case and removes duplicates, blank lines, etc.
 
 ## Screenshot
 
