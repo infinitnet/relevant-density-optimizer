@@ -221,6 +221,10 @@ const ImportantTermsComponent = compose([
 
     useEffect(() => {
     return () => {
+        if (editorSubscription) {
+            editorSubscription();
+            editorSubscription = null;
+        }
         debouncedDisplayRelevantDetails.cancel();
     }
 }, []);
@@ -316,4 +320,21 @@ const handleEditorChange = () => {
 
 const debouncedHandleEditorChange = debounce(handleEditorChange, 3000);
 
-subscribe(debouncedHandleEditorChange);
+let editorSubscription = null;
+
+const subscribeEditorChange = () => {
+    if (editorSubscription) {
+        editorSubscription();
+        editorSubscription = null;
+    }
+
+  editorSubscription = subscribe(debouncedHandleEditorChange);
+};
+
+const clearGlobalVariables = () => {
+    globalHighlightingState = false;
+    lastComputedContent = '';
+    lastComputedTerms = '';
+};
+
+subscribeEditorChange();
