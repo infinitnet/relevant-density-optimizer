@@ -90,10 +90,19 @@ const displayRelevantDetails = (content, terms, sortType, showUnusedOnly) => {
 
 const debounce = (func, wait) => {
     let timeout;
-    return (...args) => {
+    function debounced(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            timeout = null;
+            func.apply(this, args);
+        };
         clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(this, args), wait);
+        timeout = setTimeout(later, wait);
+    }
+    debounced.cancel = function() {
+        clearTimeout(timeout);
     };
+    return debounced;
 };
 
 const debouncedDisplayRelevantDetails = debounce(displayRelevantDetails, 1000);
