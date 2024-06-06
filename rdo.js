@@ -177,9 +177,13 @@ const highlightTerms = (termsArray, blocks = document.querySelectorAll(".editor-
     });
 };
 
-function copyToClipboard(event) {
+async function copyToClipboard(event) {
     const term = event.currentTarget.getAttribute('data-term');
-    navigator.clipboard.writeText(term);
+    try {
+        await navigator.clipboard.writeText(term);
+    } catch (err) {
+        console.error('Failed to copy text: ', err);
+    }
 }
 
 const ImportantTermsComponent = compose([
@@ -216,18 +220,18 @@ const ImportantTermsComponent = compose([
     };
 
     useEffect(() => {
-    debouncedDisplayRelevantDetails(props.content, localTerms, sortType, showUnusedOnly);
-}, [props.content, searchTerm, localTerms, sortType, showUnusedOnly]);
+        debouncedDisplayRelevantDetails(props.content, localTerms, sortType, showUnusedOnly);
+    }, [props.content, localTerms, sortType, showUnusedOnly]);
 
     useEffect(() => {
-    return () => {
-        if (editorSubscription) {
-            editorSubscription();
-            editorSubscription = null;
-        }
-        debouncedDisplayRelevantDetails.cancel();
-    }
-}, []);
+        return () => {
+            if (editorSubscription) {
+                editorSubscription();
+                editorSubscription = null;
+            }
+            debouncedDisplayRelevantDetails.cancel();
+        };
+    }, [editorSubscription]);
 
     const saveTerms = () => {
         let terms = localTerms.split(TERMS_SPLIT_REGEX);

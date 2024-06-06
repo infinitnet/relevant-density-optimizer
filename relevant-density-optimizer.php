@@ -34,5 +34,5 @@ function rdo_register_meta() {
     ));
 }
 
-add_action('enqueue_block_editor_assets', __NAMESPACE__ . '\rdo_enqueue_block_editor_assets');
-add_action('init', __NAMESPACE__ . '\rdo_register_meta');
+add_action('enqueue_block_editor_assets', __NAMESPACE__ . '\\rdo_enqueue_block_editor_assets');
+add_action('init', __NAMESPACE__ . '\\rdo_register_meta');
