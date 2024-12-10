@@ -1,8 +1,4 @@
 <?php
-if (!defined('ABSPATH')) {
-    exit;
-}
-
 /**
  * Plugin Name: Relevant Density Optimizer
  * Description: Highlight relevant terms in Gutenberg editor and optimize density for SEO.
@@ -16,6 +12,10 @@ if (!defined('ABSPATH')) {
  */
 
 namespace Infinitnet\RDO;
+
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 define('RDO_VERSION', '1.6.6');
 
