@@ -1,3 +1,8 @@
+let globalHighlightingState = false;
+let lastComputedContent = '';
+let lastComputedTerms = '';
+let editorSubscription = null;
+
 const { PluginSidebar } = wp.editPost;
 const { TextareaControl, Button, ToggleControl } = wp.components;
 const { withSelect, withDispatch, subscribe } = wp.data;
@@ -299,10 +304,6 @@ wp.plugins.registerPlugin('relevant-density-optimizer', {
         title: "Relevant Density Optimizer"
     }, termsHighlighterEl(ImportantTermsComponent))
 });
-
-let globalHighlightingState = false;
-let lastComputedContent = '';
-let lastComputedTerms = '';
 
 const handleEditorChange = () => {
     const newContent = selectData('core/editor').getEditedPostContent();
