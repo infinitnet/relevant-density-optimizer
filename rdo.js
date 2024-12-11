@@ -13,6 +13,7 @@ let globalHighlightingState = false;
 let lastComputedContent = '';
 let lastComputedTerms = '';
 let editorSubscription = null;
+let lastSelectedBlockId = null;
 const TERMS_SPLIT_REGEX = /\s*,\s*|\s*\n\s*/;
 
 const computeRelevantDensity = (content, termsArray) => {
@@ -192,35 +193,31 @@ const highlightTerms = (termsArray, blocks = null) => {
     // Get the editor iframe
     const editorFrame = document.querySelector('iframe[name="editor-canvas"]');
     if (!editorFrame || !editorFrame.contentDocument) {
-        // If iframe not ready, retry after a short delay
         setTimeout(() => highlightTerms(termsArray, blocks), 100);
         return;
     }
     
     removeHighlighting();
     
-    // Always re-inject CSS to ensure styles persist
+    // Ensure CSS is properly injected
     const existingStyle = editorFrame.contentDocument.querySelector('#rdo-highlight-style');
-    if (existingStyle) {
-        existingStyle.remove();
+    if (!existingStyle) {
+        const styleElement = editorFrame.contentDocument.createElement('style');
+        styleElement.id = 'rdo-highlight-style';
+        styleElement.textContent = `
+            .highlight-term {
+                background-color: lightgreen !important;
+                border-radius: 2px;
+                padding: 2px 0;
+            }
+        `;
+        editorFrame.contentDocument.head.appendChild(styleElement);
     }
-    
-    const styleElement = editorFrame.contentDocument.createElement('style');
-    styleElement.id = 'rdo-highlight-style';
-    styleElement.textContent = `
-        .highlight-term {
-            background-color: lightgreen !important;
-            border-radius: 2px;
-            padding: 2px 0;
-        }
-    `;
-    editorFrame.contentDocument.head.appendChild(styleElement);
     
     // Query within the iframe's document
     const editorContent = editorFrame.contentDocument.querySelectorAll('.block-editor-rich-text__editable');
 
     if (!editorContent.length) {
-        // If content not ready, retry after a short delay
         setTimeout(() => highlightTerms(termsArray, blocks), 100);
         return;
     }
@@ -379,15 +376,20 @@ domReady(() => {
 });
 
 const handleEditorChange = () => {
-    const postMeta = selectData('core/editor').getEditedPostAttribute('meta') || {};
+    // Get current state from component
+    const sidebarComponent = document.querySelector('.relevant-density-optimizer');
+    if (!sidebarComponent) return;
+    
+    const textarea = sidebarComponent.querySelector('.components-textarea-control__input');
+    const currentTerms = textarea ? textarea.value : '';
     const newContent = selectData('core/editor').getEditedPostContent();
     
     // Always update density display
-    displayRelevantDetails(newContent, postMeta['_important_terms']);
+    displayRelevantDetails(newContent, currentTerms);
 
-    // If highlighting is enabled, always reapply it
-    if (globalHighlightingState && postMeta['_important_terms']) {
-        const terms = postMeta['_important_terms']
+    // If highlighting is enabled, reapply it using current terms
+    if (globalHighlightingState && currentTerms) {
+        const terms = currentTerms
             .split(TERMS_SPLIT_REGEX)
             .map(term => term.trim())
             .filter(term => term !== "");
@@ -396,7 +398,7 @@ const handleEditorChange = () => {
     }
 
     lastComputedContent = newContent;
-    lastComputedTerms = postMeta['_important_terms'];
+    lastComputedTerms = currentTerms;
 };
 
 const debouncedHandleEditorChange = debounce(handleEditorChange, 3000);
@@ -409,7 +411,13 @@ const subscribeEditorChange = () => {
 
     const subscription = subscribe(() => {
         const currentContent = selectData('core/editor').getEditedPostContent();
-        if (currentContent !== lastComputedContent) {
+        const selectedBlock = selectData('core/block-editor').getSelectedBlock();
+        
+        // Trigger on content changes OR block selection changes
+        if (currentContent !== lastComputedContent || 
+            selectedBlock?.clientId !== lastSelectedBlockId) {
+            
+            lastSelectedBlockId = selectedBlock?.clientId;
             debouncedHandleEditorChange();
         }
     });
