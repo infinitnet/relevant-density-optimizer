@@ -355,50 +355,57 @@ const ImportantTermsComponent = compose([
 
     return termsHighlighterEl(
         'div',
-        {},
-        termsHighlighterEl(TextareaControl, {
-            label: "Relevant Terms",
-            value: localTerms,
-            onChange: setLocalTerms,
-            __nextHasNoMarginBottom: true
-        }),
-        termsHighlighterEl(ToggleControl, {
-            label: 'Highlight',
-            checked: isHighlightingEnabled,
-            onChange: handleToggle,
-            __nextHasNoMarginBottom: true
-        }),
-        termsHighlighterEl(Button, {
-            isPrimary: true,
-            onClick: saveTerms
-        }, 'Update'),
-        termsHighlighterEl('br'),
-        termsHighlighterEl('br'),
-        termsHighlighterEl('select', {
-            value: sortType,
-            onChange: event => setSortType(event.target.value)
-            },
-        termsHighlighterEl('option', { value: 'Count descending' }, 'Count descending'),
-        termsHighlighterEl('option', { value: 'Count ascending' }, 'Count ascending'),
-        termsHighlighterEl('option', { value: 'Alphabetically' }, 'Alphabetically')
+        { className: 'rdo-sidebar-container' },
+        termsHighlighterEl('div', { className: 'rdo-input-section' },
+            termsHighlighterEl(TextareaControl, {
+                label: "Relevant Terms",
+                value: localTerms,
+                onChange: setLocalTerms,
+                __nextHasNoMarginBottom: true,
+                className: 'rdo-textarea'
+            })
         ),
-        termsHighlighterEl('br'),
-        termsHighlighterEl('br'),
-        termsHighlighterEl(ToggleControl, {
-            label: 'Unused only',
-            checked: showUnusedOnly,
-            onChange: () => setShowUnusedOnly(!showUnusedOnly),
-            __nextHasNoMarginBottom: true
+        termsHighlighterEl('div', { className: 'rdo-controls-section' },
+            termsHighlighterEl(ToggleControl, {
+                label: 'Highlight Terms',
+                checked: isHighlightingEnabled,
+                onChange: handleToggle,
+                __nextHasNoMarginBottom: true
             }),
-        termsHighlighterEl('br'),
-        termsHighlighterEl('input', {
-            type: 'text',
-            placeholder: 'Search...',
-            value: searchTerm,
-            onChange: event => setSearchTerm(event.target.value),
-            className: 'searchTermInput'
-        }),
-        termsHighlighterEl('div', { className: 'relevant-density-optimizer' },
+            termsHighlighterEl(Button, {
+                isPrimary: true,
+                onClick: saveTerms,
+                className: 'rdo-update-button'
+            }, 'Update Terms')
+        ),
+        termsHighlighterEl('div', { className: 'rdo-filter-section' },
+            termsHighlighterEl('label', { className: 'rdo-select-label' }, 'Sort Terms'),
+            termsHighlighterEl('select', {
+                value: sortType,
+                onChange: event => setSortType(event.target.value),
+                className: 'rdo-select'
+                },
+                termsHighlighterEl('option', { value: 'Count descending' }, 'Count descending'),
+                termsHighlighterEl('option', { value: 'Count ascending' }, 'Count ascending'),
+                termsHighlighterEl('option', { value: 'Alphabetically' }, 'Alphabetically')
+            ),
+            termsHighlighterEl(ToggleControl, {
+                label: 'Show unused terms only',
+                checked: showUnusedOnly,
+                onChange: () => setShowUnusedOnly(!showUnusedOnly),
+                __nextHasNoMarginBottom: true
+            }),
+            termsHighlighterEl('div', { className: 'rdo-search-container' },
+                termsHighlighterEl('input', {
+                    type: 'text',
+                    placeholder: 'Search terms...',
+                    value: searchTerm,
+                    onChange: event => setSearchTerm(event.target.value),
+                    className: 'rdo-search-input searchTermInput'
+                })
+            )
+        ),
+        termsHighlighterEl('div', { className: 'rdo-results-section relevant-density-optimizer' },
             termsHighlighterEl('div', { className: 'relevant-details' })
         )
     );

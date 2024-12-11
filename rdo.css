@@ -1,25 +1,167 @@
-.highlight-term {
-    background-color: lightgreen;
+/* Container Styles */
+.rdo-sidebar-container {
+    padding: 16px;
+    box-sizing: border-box;
+    color: #1e1e1e;
+}
+
+/* Input Section */
+.rdo-input-section {
+    margin-bottom: 24px;
+}
+
+.rdo-textarea textarea {
+    min-height: 120px;
+    border-color: #8c8f94;
+    border-radius: 2px;
+    padding: 8px;
+}
+
+.rdo-textarea textarea:focus {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+    outline: 2px solid transparent;
+}
+
+/* Controls Section */
+.rdo-controls-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid #dcdcde;
+}
+
+.rdo-update-button {
+    margin-top: 8px !important;
+}
+
+/* Filter Section */
+.rdo-filter-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.rdo-select-label {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 13px;
+}
+
+.rdo-select {
+    width: 100%;
+    min-height: 36px;
+    padding: 8px;
+    border: 1px solid #8c8f94;
+    border-radius: 2px;
+    background-color: #fff;
+    font-size: 13px;
+}
+
+.rdo-select:focus {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+    outline: 2px solid transparent;
+}
+
+.rdo-search-container {
+    margin-top: 8px;
+}
+
+.rdo-search-input {
+    width: 100%;
+    min-height: 36px;
+    padding: 8px;
+    border: 1px solid #8c8f94;
+    border-radius: 2px;
+    font-size: 13px;
+}
+
+.rdo-search-input:focus {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+    outline: 2px solid transparent;
+}
+
+/* Results Section */
+.rdo-results-section {
+    margin-top: 16px;
 }
 
 .relevant-density {
-    margin-top: 10px;
-    font-weight: bold;
+    margin-bottom: 16px;
+    padding: 12px;
+    background-color: #f6f7f7;
+    border-radius: 4px;
+    font-size: 13px;
+    line-height: 1.4;
+    border: 1px solid #dcdcde;
 }
 
 .term-frequency {
-    margin-top: 5px;
-    padding: 3px;
+    margin: 4px;
+    padding: 6px 8px;
     display: inline-block;
     border-radius: 4px;
-    margin-right: 2px;
-    margin-bottom: 2px;
+    cursor: pointer;
+    transition: all 0.1s ease;
+    font-size: 13px;
+    line-height: 1.4;
+    user-select: none;
+}
+
+.term-frequency:hover {
+    transform: scale(1.02);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.term-frequency:focus {
+    outline: 2px solid #2271b1;
+    outline-offset: 1px;
 }
 
 .term-frequency[style*="lightgreen"] {
-    background-color: lightgreen;
+    background-color: #e5f5e8;
+    border: 1px solid #70c77c;
 }
 
 .term-frequency[style*="lightred"] {
-    background-color: lightcoral;
+    background-color: #fde8e8;
+    border: 1px solid #e66969;
+}
+
+/* WordPress Admin Context */
+#editor .rdo-sidebar-container .components-base-control {
+    margin-bottom: 16px;
+}
+
+/* Responsive Design */
+@media (max-width: 782px) {
+    .rdo-sidebar-container {
+        padding: 12px;
+    }
+    
+    .term-frequency {
+        padding: 8px 10px;
+        margin: 6px;
+    }
+    
+    .rdo-select,
+    .rdo-search-input {
+        min-height: 40px;
+    }
+}
+
+/* High Contrast Mode Support */
+@media (forced-colors: active) {
+    .term-frequency {
+        border: 1px solid CanvasText;
+    }
+    
+    .term-frequency:hover {
+        border-width: 2px;
+    }
 }
