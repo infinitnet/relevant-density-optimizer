@@ -3,7 +3,6 @@ const { domReady } = wp;
 let globalHighlightingState = false;
 let lastComputedContent = '';
 let lastComputedTerms = '';
-let editorSubscription = null;
 const { PluginSidebar } = wp.editor;
 const { TextareaControl, Button, ToggleControl, Icon } = wp.components;
 const { withSelect, withDispatch, subscribe } = wp.data;
@@ -340,7 +339,7 @@ const subscribeEditorChange = () => {
         editorSubscription = null;
     }
 
-  editorSubscription = subscribe(debouncedHandleEditorChange);
+    editorSubscription = subscribe(debouncedHandleEditorChange);
 };
 
 const clearGlobalVariables = () => {
