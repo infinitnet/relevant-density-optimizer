@@ -189,14 +189,24 @@ const highlightTerms = (termsArray, blocks = null) => {
     
     const pattern = createHighlightPattern(termsArray);
     
-    removeHighlighting();
-    
     // Get the editor iframe
     const editorFrame = document.querySelector('iframe[name="editor-canvas"]');
-    if (!editorFrame || !editorFrame.contentDocument) return;
+    if (!editorFrame || !editorFrame.contentDocument) {
+        // If iframe not ready, retry after a short delay
+        setTimeout(() => highlightTerms(termsArray, blocks), 100);
+        return;
+    }
     
-    // Inject CSS into iframe
+    removeHighlighting();
+    
+    // Always re-inject CSS to ensure styles persist
+    const existingStyle = editorFrame.contentDocument.querySelector('#rdo-highlight-style');
+    if (existingStyle) {
+        existingStyle.remove();
+    }
+    
     const styleElement = editorFrame.contentDocument.createElement('style');
+    styleElement.id = 'rdo-highlight-style';
     styleElement.textContent = `
         .highlight-term {
             background-color: lightgreen !important;
@@ -209,7 +219,11 @@ const highlightTerms = (termsArray, blocks = null) => {
     // Query within the iframe's document
     const editorContent = editorFrame.contentDocument.querySelectorAll('.block-editor-rich-text__editable');
 
-    if (!editorContent.length) return;
+    if (!editorContent.length) {
+        // If content not ready, retry after a short delay
+        setTimeout(() => highlightTerms(termsArray, blocks), 100);
+        return;
+    }
 
     editorContent.forEach(element => {
         if (element.textContent.trim()) {
