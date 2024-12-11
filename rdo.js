@@ -234,9 +234,38 @@ const highlightTerms = (termsArray, blocks = null) => {
         styleElement.id = 'rdo-highlight-style';
         styleElement.textContent = `
             .highlight-term {
-                background-color: lightgreen !important;
-                border-radius: 2px;
-                padding: 2px 0;
+                background-color: rgba(112, 199, 124, 0.15) !important;
+                border-bottom: 2px solid rgba(112, 199, 124, 0.4);
+                border-radius: 1px;
+                padding: 0 1px;
+                margin: 0 1px;
+                transition: background-color 0.2s ease, border-bottom-color 0.2s ease;
+                text-decoration-skip-ink: none;
+            }
+            
+            .highlight-term:hover {
+                background-color: rgba(112, 199, 124, 0.25) !important;
+                border-bottom-color: rgba(112, 199, 124, 0.6);
+            }
+            
+            /* Dark theme support */
+            .is-dark-theme .highlight-term {
+                background-color: rgba(112, 199, 124, 0.12) !important;
+                border-bottom-color: rgba(112, 199, 124, 0.35);
+            }
+            
+            .is-dark-theme .highlight-term:hover {
+                background-color: rgba(112, 199, 124, 0.2) !important;
+                border-bottom-color: rgba(112, 199, 124, 0.5);
+            }
+            
+            /* High contrast mode support */
+            @media (forced-colors: active) {
+                .highlight-term {
+                    border: 1px solid CanvasText;
+                    background-color: Mark !important;
+                    forced-color-adjust: none;
+                }
             }
         `;
         editorFrame.contentDocument.head.appendChild(styleElement);
