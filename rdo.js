@@ -1,8 +1,4 @@
 const { domReady } = wp;
-
-let globalHighlightingState = false;
-let lastComputedContent = '';
-let lastComputedTerms = '';
 const { PluginSidebar } = wp.editor;
 const { TextareaControl, Button, ToggleControl, Icon } = wp.components;
 const { withSelect, withDispatch, subscribe } = wp.data;
@@ -12,6 +8,11 @@ const { compose } = wp.compose;
 const { registerPlugin } = wp.plugins;
 const { __ } = wp.i18n;
 
+// Global variables
+let globalHighlightingState = false;
+let lastComputedContent = '';
+let lastComputedTerms = '';
+let editorSubscription = null;
 const TERMS_SPLIT_REGEX = /\s*,\s*|\s*\n\s*/;
 
 const computeRelevantDensity = (content, termsArray) => {
@@ -311,6 +312,8 @@ domReady(() => {
             title: __("Relevant Density Optimizer")
         }, termsHighlighterEl(ImportantTermsComponent))
     });
+    
+    subscribeEditorChange();
 });
 
 const handleEditorChange = () => {
@@ -348,4 +351,3 @@ const clearGlobalVariables = () => {
     lastComputedTerms = '';
 };
 
-subscribeEditorChange();
