@@ -4,7 +4,7 @@ let lastComputedTerms = '';
 let editorSubscription = null;
 
 const { PluginSidebar } = wp.editPost;
-const { TextareaControl, Button, ToggleControl } = wp.components;
+const { TextareaControl, Button, ToggleControl, Icon } = wp.components;
 const { withSelect, withDispatch, subscribe } = wp.data;
 const selectData = wp.data.select;
 const { createElement: termsHighlighterEl, useState, useEffect } = wp.element;
@@ -298,7 +298,7 @@ const ImportantTermsComponent = compose([
 });
 
 wp.plugins.registerPlugin('relevant-density-optimizer', {
-    icon: 'awards',
+    icon: termsHighlighterEl(Icon, { icon: 'chart-line' }),
     render: () => termsHighlighterEl(PluginSidebar, {
         name: "relevant-density-optimizer",
         title: "Relevant Density Optimizer"
