@@ -35,6 +35,10 @@
 
 .rdo-update-button {
     margin-top: 8px !important;
+    width: 100%;
+    justify-content: center;
+    height: 36px !important;
+    padding: 0 16px !important;
 }
 
 /* Filter Section */

@@ -54,11 +54,10 @@ const computeRelevantDensityForHeadings = (blocks, termsArray) => {
     return (termCount / totalWords) * 100;
 };
 
-const displayRelevantDetails = (content, terms, sortType, showUnusedOnly) => {
+const displayRelevantDetails = (content, terms, sortType, showUnusedOnly, searchTerm = "") => {
     if (!terms) return;
 
-    const searchTermInput = document.querySelector('.searchTermInput');
-    const currentSearchTerm = searchTermInput ? searchTermInput.value : "";
+    const currentSearchTerm = searchTerm || "";
 
     const termsArray = terms.split(TERMS_SPLIT_REGEX)
                            .map(term => term.toLowerCase().trim())
@@ -69,7 +68,8 @@ const displayRelevantDetails = (content, terms, sortType, showUnusedOnly) => {
     const blocks = selectData('core/block-editor').getBlocks();
     const headingDensity = computeRelevantDensityForHeadings(blocks, termsArray);
 
-    let detailsHTML = '<div class="relevant-density">Relevant Density in Headings: ' + headingDensity.toFixed(2) + '%</div>' + '<div class="relevant-density">Relevant Density Overall: ' + density.toFixed(2) + '%</div>';
+    let detailsHTML = '<div class="relevant-density"><strong>Relevant Density in Headings:</strong> ' + headingDensity.toFixed(2) + '%</div>' + 
+                      '<div class="relevant-density"><strong>Relevant Density Overall:</strong> ' + density.toFixed(2) + '%</div>';
 
     const termDetails = termsArray.map(term => {
         const regex = new RegExp("\\b" + term + "\\b", "gi");
@@ -336,8 +336,8 @@ const ImportantTermsComponent = compose([
     };
 
     useEffect(() => {
-        debouncedDisplayRelevantDetails(props.content, localTerms, sortType, showUnusedOnly);
-    }, [props.content, localTerms, sortType, showUnusedOnly]);
+        debouncedDisplayRelevantDetails(props.content, localTerms, sortType, showUnusedOnly, searchTerm);
+    }, [props.content, localTerms, sortType, showUnusedOnly, searchTerm]);
 
     useEffect(() => {
         // Set up subscription when component mounts
