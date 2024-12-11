@@ -9,6 +9,8 @@ const { withSelect, withDispatch, subscribe } = wp.data;
 const selectData = wp.data.select;
 const { createElement: termsHighlighterEl, useState, useEffect } = wp.element;
 const { compose } = wp.compose;
+const { registerPlugin } = wp.plugins;
+const { __ } = wp.i18n;
 
 const TERMS_SPLIT_REGEX = /\s*,\s*|\s*\n\s*/;
 
@@ -297,12 +299,16 @@ const ImportantTermsComponent = compose([
     );
 });
 
-wp.plugins.registerPlugin('relevant-density-optimizer', {
-    icon: 'chart-line',  // Simplified icon definition
-    render: () => termsHighlighterEl(PluginSidebar, {
-        name: "relevant-density-optimizer",
-        title: "Relevant Density Optimizer"
-    }, termsHighlighterEl(ImportantTermsComponent))
+window.addEventListener('DOMContentLoaded', () => {
+    registerPlugin('relevant-density-optimizer', {
+        icon: termsHighlighterEl(Icon, { 
+            icon: 'chart-line'
+        }),
+        render: () => termsHighlighterEl(PluginSidebar, {
+            name: "relevant-density-optimizer",
+            title: __("Relevant Density Optimizer")
+        }, termsHighlighterEl(ImportantTermsComponent))
+    });
 });
 
 const handleEditorChange = () => {
