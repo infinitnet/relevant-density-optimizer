@@ -145,6 +145,7 @@ const createHighlightPattern = (termsArray) => {
 
 const highlightText = (node, pattern) => {
     if (!node || !pattern) return;
+    console.log('Highlighting node:', node.nodeType, node.textContent?.slice(0, 50));  // DEBUG
 
     // Reset pattern for each new node
     pattern.lastIndex = 0;
@@ -152,12 +153,14 @@ const highlightText = (node, pattern) => {
     // Handle text nodes
     if (node.nodeType === 3) {
         const text = node.nodeValue;
+        console.log('Text node content:', text);  // DEBUG
         let match;
         let lastIndex = 0;
         let fragment = document.createDocumentFragment();
         let hasMatches = false;
 
         while ((match = pattern.exec(text)) !== null) {
+            console.log('Found match:', match[0], 'at index:', match.index);  // DEBUG
             hasMatches = true;
             if (match.index > lastIndex) {
                 fragment.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
@@ -192,20 +195,25 @@ const highlightText = (node, pattern) => {
 const highlightTerms = (termsArray, blocks = null) => {
     if (!termsArray || termsArray.length === 0) return;
     
+    console.log('Terms to highlight:', termsArray);  // DEBUG
     const pattern = createHighlightPattern(termsArray);
+    console.log('Pattern created:', pattern);  // DEBUG
     
     requestAnimationFrame(() => {
         removeHighlighting();
         
-        // Target all rich text blocks with their common structure
         const editorContent = document.querySelectorAll(`
             .block-editor-rich-text__editable.block-editor-block-list__block.wp-block[data-block]
         `);
+
+        console.log('Found editor blocks:', editorContent);  // DEBUG
+        console.log('First block content:', editorContent[0]?.textContent);  // DEBUG
 
         if (!editorContent.length) return;
 
         editorContent.forEach(element => {
             if (element.textContent.trim()) {
+                console.log('Processing element:', element.textContent);  // DEBUG
                 highlightText(element, pattern);
             }
         });
