@@ -148,22 +148,16 @@ const createHighlightPattern = (termsArray) => {
 
 const highlightText = (node, pattern) => {
     if (!node || !pattern) return;
-    console.log('Highlighting node:', node.nodeType, node.textContent?.slice(0, 50));  // DEBUG
 
-    // Reset pattern for each new node
     pattern.lastIndex = 0;
 
-    // Handle text nodes
     if (node.nodeType === 3) {
         const text = node.nodeValue;
-        console.log('Text node content:', text);  // DEBUG
-        let match;
         let lastIndex = 0;
         let fragment = document.createDocumentFragment();
         let hasMatches = false;
 
         while ((match = pattern.exec(text)) !== null) {
-            console.log('Found match:', match[0], 'at index:', match.index);  // DEBUG
             hasMatches = true;
             if (match.index > lastIndex) {
                 fragment.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
@@ -184,14 +178,9 @@ const highlightText = (node, pattern) => {
             node.parentNode.replaceChild(fragment, node);
         }
     } 
-    // Handle element nodes, including Gutenberg's nested structure
     else if (node.nodeType === 1) {
-        // Skip certain elements
         if (/(script|style)/i.test(node.tagName)) return;
-        
-        // Process all child nodes
-        const childNodes = Array.from(node.childNodes);
-        childNodes.forEach(child => highlightText(child, pattern));
+        Array.from(node.childNodes).forEach(child => highlightText(child, pattern));
     }
 };
 
@@ -205,6 +194,17 @@ const highlightTerms = (termsArray, blocks = null) => {
     // Get the editor iframe
     const editorFrame = document.querySelector('iframe[name="editor-canvas"]');
     if (!editorFrame || !editorFrame.contentDocument) return;
+    
+    // Inject CSS into iframe
+    const styleElement = editorFrame.contentDocument.createElement('style');
+    styleElement.textContent = `
+        .highlight-term {
+            background-color: lightgreen !important;
+            border-radius: 2px;
+            padding: 2px 0;
+        }
+    `;
+    editorFrame.contentDocument.head.appendChild(styleElement);
     
     // Query within the iframe's document
     const editorContent = editorFrame.contentDocument.querySelectorAll('.block-editor-rich-text__editable');
