@@ -263,7 +263,8 @@ const ImportantTermsComponent = compose([
         termsHighlighterEl(ToggleControl, {
             label: 'Highlight',
             checked: isHighlightingEnabled,
-            onChange: handleToggle
+            onChange: handleToggle,
+            __nextHasNoMarginBottom: true
         }),
         termsHighlighterEl(Button, {
             isPrimary: true,
@@ -284,7 +285,8 @@ const ImportantTermsComponent = compose([
         termsHighlighterEl(ToggleControl, {
             label: 'Unused only',
             checked: showUnusedOnly,
-            onChange: () => setShowUnusedOnly(!showUnusedOnly)
+            onChange: () => setShowUnusedOnly(!showUnusedOnly),
+            __nextHasNoMarginBottom: true
             }),
         termsHighlighterEl('br'),
         termsHighlighterEl('input', {
