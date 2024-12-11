@@ -4,7 +4,7 @@ let lastComputedTerms = '';
 let editorSubscription = null;
 
 const { domReady } = wp;
-const { PluginSidebar } = wp.editPost;
+const { PluginSidebar } = wp.editor;
 const { TextareaControl, Button, ToggleControl, Icon } = wp.components;
 const { withSelect, withDispatch, subscribe } = wp.data;
 const selectData = wp.data.select;
