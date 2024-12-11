@@ -285,6 +285,16 @@ const ImportantTermsComponent = compose([
         // Set up subscription when component mounts
         const subscription = subscribeEditorChange();
         
+        // Ensure highlighting state persists
+        if (globalHighlightingState) {
+            const terms = localTerms.split(TERMS_SPLIT_REGEX)
+                .map(term => term.trim())
+                .filter(term => term !== "");
+            if (terms.length > 0) {
+                highlightTerms(terms);
+            }
+        }
+        
         // Cleanup on unmount
         return () => {
             if (subscription) {
@@ -387,21 +397,32 @@ const handleEditorChange = () => {
     // Always update density display
     displayRelevantDetails(newContent, currentTerms);
 
+    // Add console logging for debugging
+    console.log('Editor change detected:', {
+        globalHighlightingState,
+        hasTerms: Boolean(currentTerms),
+        contentChanged: newContent !== lastComputedContent,
+        blockChanged: selectData('core/block-editor').getSelectedBlock()?.clientId !== lastSelectedBlockId
+    });
+
     // If highlighting is enabled, reapply it using current terms
     if (globalHighlightingState && currentTerms) {
-        const terms = currentTerms
-            .split(TERMS_SPLIT_REGEX)
-            .map(term => term.trim())
-            .filter(term => term !== "");
-            
-        highlightTerms(terms);
+        removeHighlighting(); // Explicitly remove first
+        setTimeout(() => {  // Add small delay before reapplying
+            const terms = currentTerms
+                .split(TERMS_SPLIT_REGEX)
+                .map(term => term.trim())
+                .filter(term => term !== "");
+                
+            highlightTerms(terms);
+        }, 100);
     }
 
     lastComputedContent = newContent;
     lastComputedTerms = currentTerms;
 };
 
-const debouncedHandleEditorChange = debounce(handleEditorChange, 3000);
+const debouncedHandleEditorChange = debounce(handleEditorChange, 1000);
 
 const subscribeEditorChange = () => {
     if (editorSubscription) {
@@ -412,12 +433,19 @@ const subscribeEditorChange = () => {
     const subscription = subscribe(() => {
         const currentContent = selectData('core/editor').getEditedPostContent();
         const selectedBlock = selectData('core/block-editor').getSelectedBlock();
+        const currentBlockId = selectedBlock?.clientId;
         
-        // Trigger on content changes OR block selection changes
+        // Only trigger if something actually changed
         if (currentContent !== lastComputedContent || 
-            selectedBlock?.clientId !== lastSelectedBlockId) {
+            currentBlockId !== lastSelectedBlockId) {
             
-            lastSelectedBlockId = selectedBlock?.clientId;
+            console.log('Change detected:', {
+                contentChanged: currentContent !== lastComputedContent,
+                blockChanged: currentBlockId !== lastSelectedBlockId,
+                globalHighlightingState
+            });
+            
+            lastSelectedBlockId = currentBlockId;
             debouncedHandleEditorChange();
         }
     });
