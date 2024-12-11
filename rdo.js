@@ -362,24 +362,24 @@ domReady(() => {
 });
 
 const handleEditorChange = () => {
-    const newContent = selectData('core/editor').getEditedPostContent();
     const postMeta = selectData('core/editor').getEditedPostAttribute('meta') || {};
-    const terms = postMeta['_important_terms'] ? postMeta['_important_terms'].split(TERMS_SPLIT_REGEX) : [];
+    const newContent = selectData('core/editor').getEditedPostContent();
+    
+    // Always update density display
+    displayRelevantDetails(newContent, postMeta['_important_terms']);
 
-    if (newContent !== lastComputedContent || terms.join(',') !== lastComputedTerms) {
-        displayRelevantDetails(newContent, postMeta['_important_terms']);
-
-        if (globalHighlightingState) {
-            const sortedTerms = terms
-                .map(term => term.trim())
-                .filter(term => term !== "")
-                .sort((a, b) => b.length - a.length);
-            highlightTerms(sortedTerms);
-        }
-
-        lastComputedContent = newContent;
-        lastComputedTerms = terms.join(',');
+    // If highlighting is enabled, always reapply it
+    if (globalHighlightingState && postMeta['_important_terms']) {
+        const terms = postMeta['_important_terms']
+            .split(TERMS_SPLIT_REGEX)
+            .map(term => term.trim())
+            .filter(term => term !== "");
+            
+        highlightTerms(terms);
     }
+
+    lastComputedContent = newContent;
+    lastComputedTerms = postMeta['_important_terms'];
 };
 
 const debouncedHandleEditorChange = debounce(handleEditorChange, 3000);
