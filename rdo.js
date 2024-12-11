@@ -185,17 +185,21 @@ const highlightTerms = (termsArray, blocks = null) => {
     requestAnimationFrame(() => {
         removeHighlighting();
         
-        // If blocks weren't passed, try to find them using the correct modern selector
-        if (!blocks || blocks.length === 0) {
-            blocks = document.querySelectorAll(`
-                .block-editor-block-list__layout,
-                .wp-block-post-content.block-editor-block-list__layout
-            `);
-        }
+        // Target both the container and the actual editable content areas
+        const editorContent = document.querySelectorAll(`
+            [contenteditable="true"],
+            .block-editor-rich-text__editable,
+            .block-editor-block-list__layout [data-block],
+            .wp-block-post-content [data-block]
+        `);
 
-        if (blocks.length === 0) return;
+        if (!editorContent.length) return;
 
-        blocks.forEach(block => highlightText(block, pattern));
+        editorContent.forEach(element => {
+            if (element.textContent.trim()) {  // Only process elements that have content
+                highlightText(element, pattern);
+            }
+        });
     });
 };
 
