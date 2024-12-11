@@ -298,7 +298,7 @@ const ImportantTermsComponent = compose([
 });
 
 wp.plugins.registerPlugin('relevant-density-optimizer', {
-    icon: termsHighlighterEl(Icon, { icon: 'chart-line' }),
+    icon: 'chart-line',  // Simplified icon definition
     render: () => termsHighlighterEl(PluginSidebar, {
         name: "relevant-density-optimizer",
         title: "Relevant Density Optimizer"

@@ -21,7 +21,22 @@ define('RDO_VERSION', '1.6.7');
 
 function rdo_enqueue_block_editor_assets() {
     if (!wp_script_is('rdo-plugin-js', 'enqueued')) {
-        wp_enqueue_script('rdo-plugin-js', plugin_dir_url(__FILE__) . 'rdo.js', array('wp-plugins', 'wp-edit-post', 'wp-element', 'wp-data', 'wp-compose', 'wp-components'), RDO_VERSION, true);
+        wp_enqueue_script(
+            'rdo-plugin-js', 
+            plugin_dir_url(__FILE__) . 'rdo.js', 
+            array(
+                'wp-plugins',
+                'wp-edit-post',
+                'wp-element',
+                'wp-data',
+                'wp-compose',
+                'wp-components',
+                'wp-blocks',
+                'wp-i18n'
+            ), 
+            RDO_VERSION, 
+            true
+        );
     }
 
     wp_enqueue_style('rdo-plugin-css', plugin_dir_url(__FILE__) . 'rdo.css', array(), RDO_VERSION);
