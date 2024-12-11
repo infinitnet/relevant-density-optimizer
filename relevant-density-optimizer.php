@@ -26,7 +26,7 @@ function rdo_enqueue_block_editor_assets() {
             plugin_dir_url(__FILE__) . 'rdo.js', 
             array(
                 'wp-plugins',
-                'wp-editor',
+                'wp-editor', 
                 'wp-element',
                 'wp-data',
                 'wp-compose',

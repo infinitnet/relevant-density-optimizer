@@ -1,5 +1,5 @@
 const { domReady } = wp;
-const { PluginSidebar } = wp.editor;
+const { PluginSidebar, PluginSidebarMoreMenuItem } = wp.editor;
 const { TextareaControl, Button, ToggleControl, Icon } = wp.components;
 const { withSelect, withDispatch, subscribe } = wp.data;
 const selectData = wp.data.select;
@@ -304,13 +304,18 @@ const ImportantTermsComponent = compose([
 
 domReady(() => {
     registerPlugin('relevant-density-optimizer', {
-        scope: 'relevant-density-optimizer',
         icon: 'chart-line',
-        render: () => termsHighlighterEl(PluginSidebar, {
-            name: "relevant-density-optimizer",
-            icon: 'chart-line',
-            title: __("Relevant Density Optimizer")
-        }, termsHighlighterEl(ImportantTermsComponent))
+        render: () => termsHighlighterEl(
+            wp.element.Fragment,
+            null,
+            termsHighlighterEl(PluginSidebar, {
+                name: "relevant-density-optimizer",
+                title: __("Relevant Density Optimizer")
+            }, termsHighlighterEl(ImportantTermsComponent)),
+            termsHighlighterEl(PluginSidebarMoreMenuItem, {
+                target: "relevant-density-optimizer",
+            }, __("Relevant Density Optimizer"))
+        )
     });
     
     subscribeEditorChange();
