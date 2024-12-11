@@ -258,7 +258,8 @@ const ImportantTermsComponent = compose([
         termsHighlighterEl(TextareaControl, {
             label: "Relevant Terms",
             value: localTerms,
-            onChange: setLocalTerms
+            onChange: setLocalTerms,
+            __nextHasNoMarginBottom: true
         }),
         termsHighlighterEl(ToggleControl, {
             label: 'Highlight',
