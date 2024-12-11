@@ -3,6 +3,7 @@ let lastComputedContent = '';
 let lastComputedTerms = '';
 let editorSubscription = null;
 
+const { domReady } = wp;
 const { PluginSidebar } = wp.editPost;
 const { TextareaControl, Button, ToggleControl, Icon } = wp.components;
 const { withSelect, withDispatch, subscribe } = wp.data;
@@ -299,13 +300,13 @@ const ImportantTermsComponent = compose([
     );
 });
 
-window.addEventListener('DOMContentLoaded', () => {
+domReady(() => {
     registerPlugin('relevant-density-optimizer', {
-        icon: termsHighlighterEl(Icon, { 
-            icon: 'chart-line'
-        }),
+        scope: 'relevant-density-optimizer',
+        icon: 'chart-line',
         render: () => termsHighlighterEl(PluginSidebar, {
             name: "relevant-density-optimizer",
+            icon: 'chart-line',
             title: __("Relevant Density Optimizer")
         }, termsHighlighterEl(ImportantTermsComponent))
     });

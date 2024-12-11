@@ -32,8 +32,9 @@ function rdo_enqueue_block_editor_assets() {
                 'wp-compose',
                 'wp-components',
                 'wp-blocks',
-                'wp-i18n'
-            ), 
+                'wp-i18n',
+                'wp-dom-ready'
+            ),
             RDO_VERSION, 
             true
         );
