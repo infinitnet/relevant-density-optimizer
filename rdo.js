@@ -198,11 +198,19 @@ const highlightTerms = (termsArray, blocks = null) => {
     const pattern = createHighlightPattern(termsArray);
     
     removeHighlighting();
+
+    // DEBUG: Check if selector works
+    const test = document.querySelector('.block-editor-rich-text__editable');
+    console.log('Direct test:', test);
+    console.log('Document body:', document.body);
     
     // Simplified selector targeting just rich-text blocks
     const editorContent = document.querySelectorAll('.block-editor-rich-text__editable');
 
-    if (!editorContent.length) return;
+    if (!editorContent.length) {
+        console.log('No editor content found with selector');
+        return;
+    }
 
     editorContent.forEach(element => {
         if (element.textContent.trim()) {
