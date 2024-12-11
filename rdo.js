@@ -195,28 +195,19 @@ const highlightText = (node, pattern) => {
 const highlightTerms = (termsArray, blocks = null) => {
     if (!termsArray || termsArray.length === 0) return;
     
-    console.log('Terms to highlight:', termsArray);  // DEBUG
     const pattern = createHighlightPattern(termsArray);
-    console.log('Pattern created:', pattern);  // DEBUG
     
-    requestAnimationFrame(() => {
-        removeHighlighting();
-        
-        const editorContent = document.querySelectorAll(`
-            .block-editor-rich-text__editable.block-editor-block-list__block.wp-block[data-block]
-        `);
+    removeHighlighting();
+    
+    // Simplified selector targeting just rich-text blocks
+    const editorContent = document.querySelectorAll('.block-editor-rich-text__editable');
 
-        console.log('Found editor blocks:', editorContent);  // DEBUG
-        console.log('First block content:', editorContent[0]?.textContent);  // DEBUG
+    if (!editorContent.length) return;
 
-        if (!editorContent.length) return;
-
-        editorContent.forEach(element => {
-            if (element.textContent.trim()) {
-                console.log('Processing element:', element.textContent);  // DEBUG
-                highlightText(element, pattern);
-            }
-        });
+    editorContent.forEach(element => {
+        if (element.textContent.trim()) {
+            highlightText(element, pattern);
+        }
     });
 };
 
