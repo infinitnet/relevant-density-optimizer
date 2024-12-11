@@ -50,7 +50,8 @@ function rdo_register_meta() {
         'type' => 'string',
         'auth_callback' => function() {
             return current_user_can('edit_posts');
-        }
+        },
+        'sanitize_callback' => 'sanitize_textarea_field'
     ));
 }
 

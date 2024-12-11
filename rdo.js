@@ -1,4 +1,5 @@
 const { domReady } = wp;
+const { createNotice } = wp.data.dispatch('core/notices');
 const { PluginSidebar, PluginSidebarMoreMenuItem } = wp.editor;
 const { TextareaControl, Button, ToggleControl, Icon } = wp.components;
 const { withSelect, withDispatch, subscribe } = wp.data;
@@ -302,11 +303,18 @@ const ImportantTermsComponent = compose([
     })),
     withDispatch(dispatch => ({
         setMetaFieldValue: value => {
-            const editor = dispatch('core/editor');
-            let content = selectData('core/editor').getEditedPostContent();
-            content = removeHighlightingFromContent(content);
-            editor.editPost({ content: content });
-            editor.editPost({ meta: { _important_terms: value } });
+            return new Promise((resolve, reject) => {
+                try {
+                    const editor = dispatch('core/editor');
+                    let content = selectData('core/editor').getEditedPostContent();
+                    content = removeHighlightingFromContent(content);
+                    editor.editPost({ content: content });
+                    editor.editPost({ meta: { _important_terms: value } });
+                    resolve();
+                } catch (error) {
+                    reject(error);
+                }
+            });
         }
     }))
 ])((props) => {
@@ -396,19 +404,38 @@ const ImportantTermsComponent = compose([
         terms = terms.filter(term => !term.includes('=='));
         terms = [...new Set(terms)];
         const cleanedTerms = terms.join('\n');
-        props.setMetaFieldValue(cleanedTerms);
-        setLocalTerms(cleanedTerms);
         
-        // Update processed terms array and rehighlight if enabled
-        if (globalHighlightingState) {
-            processedTermsArray = terms.sort((a, b) => b.length - a.length);
-            removeHighlighting();
-            setTimeout(() => {
-                if (processedTermsArray.length > 0) {
-                    highlightTerms(processedTermsArray);
+        props.setMetaFieldValue(cleanedTerms).then(() => {
+            setLocalTerms(cleanedTerms);
+            
+            if (globalHighlightingState) {
+                processedTermsArray = terms.sort((a, b) => b.length - a.length);
+                removeHighlighting();
+                setTimeout(() => {
+                    if (processedTermsArray.length > 0) {
+                        highlightTerms(processedTermsArray);
+                    }
+                }, 50);
+            }
+            
+            createNotice(
+                'success',
+                'Terms saved successfully.',
+                {
+                    type: 'snackbar',
+                    isDismissible: true,
                 }
-            }, 50);
-        }
+            );
+        }).catch(() => {
+            createNotice(
+                'error',
+                'Failed to save terms. Please try again.',
+                {
+                    type: 'snackbar',
+                    isDismissible: true,
+                }
+            );
+        });
     };
 
     return termsHighlighterEl(
