@@ -185,18 +185,15 @@ const highlightTerms = (termsArray, blocks = null) => {
     requestAnimationFrame(() => {
         removeHighlighting();
         
-        // Target both the container and the actual editable content areas
+        // Target all rich text blocks with their common structure
         const editorContent = document.querySelectorAll(`
-            [contenteditable="true"],
-            .block-editor-rich-text__editable,
-            .block-editor-block-list__layout [data-block],
-            .wp-block-post-content [data-block]
+            .block-editor-rich-text__editable.block-editor-block-list__block.wp-block[data-block]
         `);
 
         if (!editorContent.length) return;
 
         editorContent.forEach(element => {
-            if (element.textContent.trim()) {  // Only process elements that have content
+            if (element.textContent.trim()) {
                 highlightText(element, pattern);
             }
         });
