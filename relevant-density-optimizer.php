@@ -6,7 +6,7 @@
  * Author URI: https://infinitnet.io/
  * Plugin URI: https://infinitnet.io/relevant-density-optimizer/
  * Update URI: https://github.com/infinitnet/relevant-density-optimizer
- * Version: 1.7.1
+ * Version: 1.7.2
  * License: GPLv3
  * Text Domain: relevant-density-optimizer
  */
@@ -17,7 +17,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('RDO_VERSION', '1.7.1');
+define('RDO_VERSION', '1.7.2');
 
 function rdo_enqueue_block_editor_assets() {
     if (!wp_script_is('rdo-plugin-js', 'enqueued')) {
