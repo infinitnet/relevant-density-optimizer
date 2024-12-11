@@ -316,6 +316,24 @@ const ImportantTermsComponent = compose([
     const [sortType, setSortType] = useState("Count descending");
     const [showUnusedOnly, setShowUnusedOnly] = useState(false);
 
+    useEffect(() => {
+        if (globalHighlightingState) {
+            processedTermsArray = localTerms.split(TERMS_SPLIT_REGEX)
+                .map(term => term.trim())
+                .filter(term => term !== "")
+                .sort((a, b) => b.length - a.length);
+                
+            if (processedTermsArray.length > 0) {
+                removeHighlighting();
+                setTimeout(() => {
+                    highlightTerms(processedTermsArray);
+                }, 50);
+            } else {
+                removeHighlighting();
+            }
+        }
+    }, [localTerms]); // Only trigger when terms change
+
     const handleToggle = () => {
         toggleHighlighting(!isHighlightingEnabled);
         globalHighlightingState = !isHighlightingEnabled;
@@ -380,6 +398,17 @@ const ImportantTermsComponent = compose([
         const cleanedTerms = terms.join('\n');
         props.setMetaFieldValue(cleanedTerms);
         setLocalTerms(cleanedTerms);
+        
+        // Update processed terms array and rehighlight if enabled
+        if (globalHighlightingState) {
+            processedTermsArray = terms.sort((a, b) => b.length - a.length);
+            removeHighlighting();
+            setTimeout(() => {
+                if (processedTermsArray.length > 0) {
+                    highlightTerms(processedTermsArray);
+                }
+            }, 50);
+        }
     };
 
     return termsHighlighterEl(
