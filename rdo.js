@@ -177,10 +177,33 @@ const highlightText = (node, pattern) => {
     }
 };
 
-const highlightTerms = (termsArray, blocks = document.querySelectorAll(".editor-styles-wrapper [data-block], .block-editor-block-list__layout .block-editor-block-list__block")) => {
+const highlightTerms = (termsArray, blocks = null) => {
+    if (!termsArray || termsArray.length === 0) return;
+    
     const pattern = createHighlightPattern(termsArray);
+    
     requestAnimationFrame(() => {
+        // Remove existing highlighting first
         removeHighlighting();
+        
+        // If blocks weren't passed, try to find them
+        if (!blocks || blocks.length === 0) {
+            blocks = document.querySelectorAll(`
+                .editor-styles-wrapper [data-block],
+                .block-editor-block-list__layout .block-editor-block-list__block,
+                .block-editor-rich-text__editable,
+                .wp-block
+            `);
+        }
+        
+        // Debug log
+        console.log('Found blocks:', blocks.length);
+        
+        if (blocks.length === 0) {
+            console.warn('No blocks found for highlighting');
+            return;
+        }
+
         blocks.forEach(block => highlightText(block, pattern));
     });
 };
@@ -218,10 +241,18 @@ const ImportantTermsComponent = compose([
     const handleToggle = () => {
         toggleHighlighting(!isHighlightingEnabled);
         globalHighlightingState = !isHighlightingEnabled;
-        const terms = localTerms.split(TERMS_SPLIT_REGEX);
-        const sortedTerms = terms.sort((a, b) => b.length - a.length);
+        
         if (globalHighlightingState) {
-            highlightTerms(sortedTerms);
+            const terms = localTerms.split(TERMS_SPLIT_REGEX)
+                .map(term => term.trim())
+                .filter(term => term !== "");
+                
+            console.log('Terms to highlight:', terms); // Debug log
+            
+            if (terms.length > 0) {
+                const sortedTerms = terms.sort((a, b) => b.length - a.length);
+                highlightTerms(sortedTerms);
+            }
         } else {
             removeHighlighting();
         }
