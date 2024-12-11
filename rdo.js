@@ -285,14 +285,17 @@ const ImportantTermsComponent = compose([
     }, [props.content, localTerms, sortType, showUnusedOnly]);
 
     useEffect(() => {
+        // Set up subscription when component mounts
+        const subscription = subscribeEditorChange();
+        
+        // Cleanup on unmount
         return () => {
-            if (editorSubscription) {
-                editorSubscription();
-                editorSubscription = null;
+            if (subscription) {
+                subscription();
             }
             debouncedDisplayRelevantDetails.cancel();
         };
-    }, [editorSubscription]);
+    }, []); // Empty dependency array - only run on mount/unmount
 
     const saveTerms = () => {
         let terms = localTerms.split(TERMS_SPLIT_REGEX);
@@ -404,7 +407,15 @@ const subscribeEditorChange = () => {
         editorSubscription = null;
     }
 
-    editorSubscription = subscribe(debouncedHandleEditorChange);
+    const subscription = subscribe(() => {
+        const currentContent = selectData('core/editor').getEditedPostContent();
+        if (currentContent !== lastComputedContent) {
+            debouncedHandleEditorChange();
+        }
+    });
+
+    editorSubscription = subscription;
+    return subscription;
 };
 
 const clearGlobalVariables = () => {
