@@ -14,6 +14,7 @@ let lastComputedContent = '';
 let lastComputedTerms = '';
 let editorSubscription = null;
 let lastSelectedBlockId = null;
+let cachedTerms = '';
 const TERMS_SPLIT_REGEX = /\s*,\s*|\s*\n\s*/;
 
 const computeRelevantDensity = (content, termsArray) => {
@@ -262,6 +263,7 @@ const ImportantTermsComponent = compose([
     const handleToggle = () => {
         toggleHighlighting(!isHighlightingEnabled);
         globalHighlightingState = !isHighlightingEnabled;
+        cachedTerms = localTerms; // Cache the terms when toggling
         
         if (globalHighlightingState) {
             const terms = localTerms.split(TERMS_SPLIT_REGEX)
@@ -269,6 +271,7 @@ const ImportantTermsComponent = compose([
                 .filter(term => term !== "");
                 
             if (terms.length > 0) {
+                console.log('Toggle highlighting with terms:', terms);
                 const sortedTerms = terms.sort((a, b) => b.length - a.length);
                 highlightTerms(sortedTerms);
             }
@@ -285,12 +288,16 @@ const ImportantTermsComponent = compose([
         // Set up subscription when component mounts
         const subscription = subscribeEditorChange();
         
+        // Cache initial terms
+        cachedTerms = localTerms;
+        
         // Ensure highlighting state persists
         if (globalHighlightingState) {
             const terms = localTerms.split(TERMS_SPLIT_REGEX)
                 .map(term => term.trim())
                 .filter(term => term !== "");
             if (terms.length > 0) {
+                console.log('Initial highlighting with terms:', terms);
                 highlightTerms(terms);
             }
         }
@@ -303,6 +310,11 @@ const ImportantTermsComponent = compose([
             debouncedDisplayRelevantDetails.cancel();
         };
     }, []); // Empty dependency array - only run on mount/unmount
+
+    // Add effect to update cached terms when they change
+    useEffect(() => {
+        cachedTerms = localTerms;
+    }, [localTerms]);
 
     const saveTerms = () => {
         let terms = localTerms.split(TERMS_SPLIT_REGEX);
@@ -391,31 +403,39 @@ const handleEditorChange = () => {
     if (!sidebarComponent) return;
     
     const textarea = sidebarComponent.querySelector('.components-textarea-control__input');
-    const currentTerms = textarea ? textarea.value : '';
+    const currentTerms = textarea ? textarea.value : cachedTerms; // Use cached terms as fallback
     const newContent = selectData('core/editor').getEditedPostContent();
     
     // Always update density display
     displayRelevantDetails(newContent, currentTerms);
 
-    // Add console logging for debugging
+    // Add detailed logging
     console.log('Editor change detected:', {
         globalHighlightingState,
         hasTerms: Boolean(currentTerms),
+        termsContent: currentTerms, // Log actual terms content
         contentChanged: newContent !== lastComputedContent,
         blockChanged: selectData('core/block-editor').getSelectedBlock()?.clientId !== lastSelectedBlockId
     });
 
-    // If highlighting is enabled, reapply it using current terms
+    // If highlighting is enabled and we have terms, reapply highlighting
     if (globalHighlightingState && currentTerms) {
-        removeHighlighting(); // Explicitly remove first
-        setTimeout(() => {  // Add small delay before reapplying
-            const terms = currentTerms
-                .split(TERMS_SPLIT_REGEX)
-                .map(term => term.trim())
-                .filter(term => term !== "");
-                
-            highlightTerms(terms);
-        }, 100);
+        const terms = currentTerms
+            .split(TERMS_SPLIT_REGEX)
+            .map(term => term.trim())
+            .filter(term => term !== "");
+            
+        if (terms.length > 0) {
+            console.log('Reapplying highlighting with terms:', terms);
+            removeHighlighting(); // Explicitly remove first
+            
+            // Use a shorter timeout
+            setTimeout(() => {
+                highlightTerms(terms);
+            }, 50);
+        } else {
+            console.log('No valid terms to highlight');
+        }
     }
 
     lastComputedContent = newContent;
@@ -442,11 +462,18 @@ const subscribeEditorChange = () => {
             console.log('Change detected:', {
                 contentChanged: currentContent !== lastComputedContent,
                 blockChanged: currentBlockId !== lastSelectedBlockId,
-                globalHighlightingState
+                globalHighlightingState,
+                hasCachedTerms: Boolean(cachedTerms)
             });
             
             lastSelectedBlockId = currentBlockId;
-            debouncedHandleEditorChange();
+            
+            // Use shorter debounce for block changes
+            if (currentBlockId !== lastSelectedBlockId) {
+                setTimeout(handleEditorChange, 50);
+            } else {
+                debouncedHandleEditorChange();
+            }
         }
     });
 
