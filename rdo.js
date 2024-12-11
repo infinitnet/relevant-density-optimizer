@@ -116,7 +116,10 @@ const debounce = (func, wait) => {
 const debouncedDisplayRelevantDetails = debounce(displayRelevantDetails, 1000);
 
 const removeHighlighting = () => {
-    document.querySelectorAll(".editor-styles-wrapper .highlight-term").forEach(span => {
+    const editorFrame = document.querySelector('iframe[name="editor-canvas"]');
+    if (!editorFrame || !editorFrame.contentDocument) return;
+    
+    editorFrame.contentDocument.querySelectorAll(".highlight-term").forEach(span => {
         const parent = span.parentElement;
         while (span.firstChild) {
             parent.insertBefore(span.firstChild, span);
@@ -198,19 +201,15 @@ const highlightTerms = (termsArray, blocks = null) => {
     const pattern = createHighlightPattern(termsArray);
     
     removeHighlighting();
-
-    // DEBUG: Check if selector works
-    const test = document.querySelector('.block-editor-rich-text__editable');
-    console.log('Direct test:', test);
-    console.log('Document body:', document.body);
     
-    // Simplified selector targeting just rich-text blocks
-    const editorContent = document.querySelectorAll('.block-editor-rich-text__editable');
+    // Get the editor iframe
+    const editorFrame = document.querySelector('iframe[name="editor-canvas"]');
+    if (!editorFrame || !editorFrame.contentDocument) return;
+    
+    // Query within the iframe's document
+    const editorContent = editorFrame.contentDocument.querySelectorAll('.block-editor-rich-text__editable');
 
-    if (!editorContent.length) {
-        console.log('No editor content found with selector');
-        return;
-    }
+    if (!editorContent.length) return;
 
     editorContent.forEach(element => {
         if (element.textContent.trim()) {
