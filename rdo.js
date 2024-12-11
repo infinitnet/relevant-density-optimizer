@@ -364,13 +364,16 @@ domReady(() => {
 const handleEditorChange = () => {
     const newContent = selectData('core/editor').getEditedPostContent();
     const postMeta = selectData('core/editor').getEditedPostAttribute('meta') || {};
-    const terms = postMeta['_important_terms'] ? postMeta['_important_terms'].split('\n') : [];
+    const terms = postMeta['_important_terms'] ? postMeta['_important_terms'].split(TERMS_SPLIT_REGEX) : [];
 
     if (newContent !== lastComputedContent || terms.join(',') !== lastComputedTerms) {
         displayRelevantDetails(newContent, postMeta['_important_terms']);
 
         if (globalHighlightingState) {
-            const sortedTerms = terms.sort((a, b) => b.length - a.length);
+            const sortedTerms = terms
+                .map(term => term.trim())
+                .filter(term => term !== "")
+                .sort((a, b) => b.length - a.length);
             highlightTerms(sortedTerms);
         }
 
