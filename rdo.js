@@ -146,14 +146,22 @@ const createHighlightPattern = (termsArray) => {
 const highlightText = (node, pattern) => {
     if (!node || !pattern) return;
 
+    // Reset pattern for each new node
+    pattern.lastIndex = 0;
+
+    // Handle text nodes
     if (node.nodeType === 3) {
+        const text = node.nodeValue;
         let match;
         let lastIndex = 0;
         let fragment = document.createDocumentFragment();
+        let hasMatches = false;
 
-        while ((match = pattern.exec(node.nodeValue)) !== null) {
-            const precedingText = document.createTextNode(node.nodeValue.slice(lastIndex, match.index));
-            fragment.appendChild(precedingText);
+        while ((match = pattern.exec(text)) !== null) {
+            hasMatches = true;
+            if (match.index > lastIndex) {
+                fragment.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+            }
 
             const highlightSpan = document.createElement('span');
             highlightSpan.className = 'highlight-term';
@@ -163,17 +171,21 @@ const highlightText = (node, pattern) => {
             lastIndex = pattern.lastIndex;
         }
 
-        if (lastIndex < node.nodeValue.length) {
-            const remainingText = document.createTextNode(node.nodeValue.slice(lastIndex));
-            fragment.appendChild(remainingText);
-        }
-
-        if (fragment.childNodes.length > 0) {
+        if (hasMatches) {
+            if (lastIndex < text.length) {
+                fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+            }
             node.parentNode.replaceChild(fragment, node);
         }
-
-    } else if (node.nodeType === 1 && node.childNodes && !/(script|style)/i.test(node.tagName)) {
-        Array.from(node.childNodes).forEach(childNode => highlightText(childNode, pattern));
+    } 
+    // Handle element nodes, including Gutenberg's nested structure
+    else if (node.nodeType === 1) {
+        // Skip certain elements
+        if (/(script|style)/i.test(node.tagName)) return;
+        
+        // Process all child nodes
+        const childNodes = Array.from(node.childNodes);
+        childNodes.forEach(child => highlightText(child, pattern));
     }
 };
 
