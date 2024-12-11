@@ -15,6 +15,7 @@ let lastComputedTerms = '';
 let editorSubscription = null;
 let lastSelectedBlockId = null;
 let cachedTerms = '';
+let processedTermsArray = []; // Cache for processed terms
 const TERMS_SPLIT_REGEX = /\s*,\s*|\s*\n\s*/;
 
 const computeRelevantDensity = (content, termsArray) => {
@@ -144,35 +145,61 @@ const removeHighlightingFromContent = (content) => {
 };
 
 const createHighlightPattern = (termsArray) => {
+    const CHUNK_SIZE = 500;
+    if (termsArray.length > CHUNK_SIZE) {
+        const patterns = [];
+        for (let i = 0; i < termsArray.length; i += CHUNK_SIZE) {
+            const chunk = termsArray.slice(i, i + CHUNK_SIZE);
+            const escapedTerms = chunk.map(term => term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+            patterns.push(new RegExp("\\b(" + escapedTerms.join('|') + ")\\b", "gi"));
+        }
+        return patterns;
+    }
+    
     const escapedTerms = termsArray.map(term => term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-    return new RegExp("\\b(" + escapedTerms.join('|') + ")\\b", "gi");
+    return [new RegExp("\\b(" + escapedTerms.join('|') + ")\\b", "gi")];
 };
 
-const highlightText = (node, pattern) => {
-    if (!node || !pattern) return;
-
-    pattern.lastIndex = 0;
-
+const highlightText = (node, patterns) => {
+    if (!node || !patterns) return;
+    
     if (node.nodeType === 3) {
-        const text = node.nodeValue;
-        let lastIndex = 0;
-        let fragment = document.createDocumentFragment();
+        let text = node.nodeValue;
         let hasMatches = false;
-
-        while ((match = pattern.exec(text)) !== null) {
+        let fragment = document.createDocumentFragment();
+        let lastIndex = 0;
+        
+        const patternArray = Array.isArray(patterns) ? patterns : [patterns];
+        
+        let matches = [];
+        patternArray.forEach(pattern => {
+            pattern.lastIndex = 0;
+            let match;
+            while ((match = pattern.exec(text)) !== null) {
+                matches.push({
+                    index: match.index,
+                    length: match[0].length,
+                    text: match[0]
+                });
+            }
+        });
+        
+        matches.sort((a, b) => a.index - b.index);
+        
+        matches.forEach(match => {
             hasMatches = true;
             if (match.index > lastIndex) {
                 fragment.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
             }
-
+            
             const highlightSpan = document.createElement('span');
             highlightSpan.className = 'highlight-term';
-            highlightSpan.textContent = match[0];
+            highlightSpan.textContent = match.text;
             fragment.appendChild(highlightSpan);
-
-            lastIndex = pattern.lastIndex;
-        }
-
+            
+            lastIndex = match.index + match.length;
+        });
+        
         if (hasMatches) {
             if (lastIndex < text.length) {
                 fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
@@ -182,7 +209,7 @@ const highlightText = (node, pattern) => {
     } 
     else if (node.nodeType === 1) {
         if (/(script|style)/i.test(node.tagName)) return;
-        Array.from(node.childNodes).forEach(child => highlightText(child, pattern));
+        Array.from(node.childNodes).forEach(child => highlightText(child, patterns));
     }
 };
 
@@ -263,17 +290,16 @@ const ImportantTermsComponent = compose([
     const handleToggle = () => {
         toggleHighlighting(!isHighlightingEnabled);
         globalHighlightingState = !isHighlightingEnabled;
-        cachedTerms = localTerms; // Cache the terms when toggling
+        cachedTerms = localTerms;
         
         if (globalHighlightingState) {
-            const terms = localTerms.split(TERMS_SPLIT_REGEX)
+            processedTermsArray = localTerms.split(TERMS_SPLIT_REGEX)
                 .map(term => term.trim())
-                .filter(term => term !== "");
+                .filter(term => term !== "")
+                .sort((a, b) => b.length - a.length);
                 
-            if (terms.length > 0) {
-                console.log('Toggle highlighting with terms:', terms);
-                const sortedTerms = terms.sort((a, b) => b.length - a.length);
-                highlightTerms(sortedTerms);
+            if (processedTermsArray.length > 0) {
+                highlightTerms(processedTermsArray);
             }
         } else {
             removeHighlighting();
@@ -398,44 +424,20 @@ domReady(() => {
 });
 
 const handleEditorChange = () => {
-    // Get current state from component
     const sidebarComponent = document.querySelector('.relevant-density-optimizer');
     if (!sidebarComponent) return;
     
     const textarea = sidebarComponent.querySelector('.components-textarea-control__input');
-    const currentTerms = textarea ? textarea.value : cachedTerms; // Use cached terms as fallback
+    const currentTerms = textarea ? textarea.value : cachedTerms;
     const newContent = selectData('core/editor').getEditedPostContent();
     
-    // Always update density display
     displayRelevantDetails(newContent, currentTerms);
 
-    // Add detailed logging
-    console.log('Editor change detected:', {
-        globalHighlightingState,
-        hasTerms: Boolean(currentTerms),
-        termsContent: currentTerms, // Log actual terms content
-        contentChanged: newContent !== lastComputedContent,
-        blockChanged: selectData('core/block-editor').getSelectedBlock()?.clientId !== lastSelectedBlockId
-    });
-
-    // If highlighting is enabled and we have terms, reapply highlighting
-    if (globalHighlightingState && currentTerms) {
-        const terms = currentTerms
-            .split(TERMS_SPLIT_REGEX)
-            .map(term => term.trim())
-            .filter(term => term !== "");
-            
-        if (terms.length > 0) {
-            console.log('Reapplying highlighting with terms:', terms);
-            removeHighlighting(); // Explicitly remove first
-            
-            // Use a shorter timeout
-            setTimeout(() => {
-                highlightTerms(terms);
-            }, 50);
-        } else {
-            console.log('No valid terms to highlight');
-        }
+    if (globalHighlightingState && processedTermsArray.length > 0) {
+        removeHighlighting();
+        setTimeout(() => {
+            highlightTerms(processedTermsArray);
+        }, 50);
     }
 
     lastComputedContent = newContent;
