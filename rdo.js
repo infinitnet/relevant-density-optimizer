@@ -196,13 +196,7 @@ const highlightTerms = (termsArray, blocks = null) => {
             `);
         }
         
-        // Debug log
-        console.log('Found blocks:', blocks.length);
-        
-        if (blocks.length === 0) {
-            console.warn('No blocks found for highlighting');
-            return;
-        }
+        if (blocks.length === 0) return;
 
         blocks.forEach(block => highlightText(block, pattern));
     });
@@ -247,8 +241,6 @@ const ImportantTermsComponent = compose([
                 .map(term => term.trim())
                 .filter(term => term !== "");
                 
-            console.log('Terms to highlight:', terms); // Debug log
-            
             if (terms.length > 0) {
                 const sortedTerms = terms.sort((a, b) => b.length - a.length);
                 highlightTerms(sortedTerms);
