@@ -183,22 +183,28 @@ const highlightTerms = (termsArray, blocks = null) => {
     const pattern = createHighlightPattern(termsArray);
     
     requestAnimationFrame(() => {
-        // Remove existing highlighting first
         removeHighlighting();
         
-        // If blocks weren't passed, try to find them
-        if (!blocks || blocks.length === 0) {
-            blocks = document.querySelectorAll(`
-                .editor-styles-wrapper [data-block],
-                .block-editor-block-list__layout .block-editor-block-list__block,
-                .block-editor-rich-text__editable,
-                .wp-block
-            `);
-        }
+        // DEBUG: Log all editor elements to inspect structure
+        console.log('Editor structure:', document.querySelector('.editor-styles-wrapper'));
+        console.log('Block editor:', document.querySelector('.block-editor-block-list__layout'));
+        console.log('Rich text:', document.querySelectorAll('.block-editor-rich-text__editable'));
         
-        if (blocks.length === 0) return;
-
-        blocks.forEach(block => highlightText(block, pattern));
+        // Try different modern Gutenberg selectors
+        const possibleSelectors = [
+            '.editor-styles-wrapper [data-block]',
+            '.block-editor-block-list__layout .block-editor-block-list__block',
+            '.block-editor-rich-text__editable',
+            '.wp-block',
+            '.is-root-container',
+            '.editor-styles-wrapper .rich-text',
+            '.wp-block-post-content'
+        ];
+        
+        possibleSelectors.forEach(selector => {
+            const elements = document.querySelectorAll(selector);
+            console.log(`Selector "${selector}":`, elements.length);
+        });
     });
 };
 
