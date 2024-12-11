@@ -177,7 +177,7 @@ const highlightText = (node, pattern) => {
     }
 };
 
-const highlightTerms = (termsArray, blocks = document.querySelectorAll(".editor-styles-wrapper .block-editor-block-list__block")) => {
+const highlightTerms = (termsArray, blocks = document.querySelectorAll(".editor-styles-wrapper [data-block], .block-editor-block-list__layout .block-editor-block-list__block")) => {
     const pattern = createHighlightPattern(termsArray);
     requestAnimationFrame(() => {
         removeHighlighting();
