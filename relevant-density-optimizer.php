@@ -1,13 +1,12 @@
 <?php
 /**
- * Plugin Name: Relevant Density Optimizer
- * Description: Highlight relevant terms in Gutenberg editor and optimize density for SEO.
+ * Plugin Name: Relevant Density Optimizer (RDO) - On-Page SEO Plugin
+ * Description: Highlight terms in Gutenberg editor and optimize relevant density for SEO.
  * Author: Infinitnet
  * Author URI: https://infinitnet.io/
  * Plugin URI: https://infinitnet.io/relevant-density-optimizer/
- * Update URI: https://github.com/infinitnet/relevant-density-optimizer
  * Version: 1.7.2
- * License: GPLv3
+ * License: GPLv2 or later
  * Text Domain: relevant-density-optimizer
  */
 
