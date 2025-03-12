@@ -4,7 +4,7 @@ Donate link: https://infinitnet.io/
 Tags: seo, content optimization, keyword density, gutenberg, editor
 Requires at least: 5.0
 Tested up to: 6.7.2
-Stable tag: 1.7.2
+Stable tag: 1.7.3
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -74,6 +74,9 @@ RDO is designed to be lightweight and efficient. The term highlighting feature u
 4. Filter and search functionality
 
 == Changelog ==
+
+= 1.7.3 =
+* Fix namespace pollution
 
 = 1.7.2 =
 * Performance improvements for handling large numbers of terms
