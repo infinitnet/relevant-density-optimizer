@@ -1,13 +1,15 @@
-const { domReady } = wp;
-const { createNotice } = wp.data.dispatch('core/notices');
-const { PluginSidebar, PluginSidebarMoreMenuItem } = wp.editor;
-const { TextareaControl, Button, ToggleControl, Icon } = wp.components;
-const { withSelect, withDispatch, subscribe } = wp.data;
-const selectData = wp.data.select;
-const { createElement: termsHighlighterEl, useState, useEffect } = wp.element;
-const { compose } = wp.compose;
-const { registerPlugin } = wp.plugins;
-const { __ } = wp.i18n;
+// Use an IIFE to avoid global namespace pollution
+(function() {
+    const { domReady } = wp;
+    const { createNotice } = wp.data.dispatch('core/notices');
+    const { PluginSidebar, PluginSidebarMoreMenuItem } = wp.editor;
+    const { TextareaControl, Button, ToggleControl, Icon } = wp.components;
+    const { withSelect, withDispatch, subscribe } = wp.data;
+    const selectData = wp.data.select;
+    const { createElement: termsHighlighterEl, useState, useEffect } = wp.element;
+    const { compose } = wp.compose;
+    const { registerPlugin } = wp.plugins;
+    const { __ } = wp.i18n;
 
 // Global variables
 let globalHighlightingState = false;
@@ -580,4 +582,7 @@ const clearGlobalVariables = () => {
     lastComputedContent = '';
     lastComputedTerms = '';
 };
+
+// Close the IIFE that was opened at the beginning of the file
+})();
 
