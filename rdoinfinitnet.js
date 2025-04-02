@@ -1,3 +1,13 @@
+// Define copyToClipboard in global scope for onclick handler
+window.copyToClipboard = async function(event) {
+    const term = event.currentTarget.getAttribute('data-term');
+    try {
+        await navigator.clipboard.writeText(term);
+    } catch (err) {
+        console.error('Failed to copy text: ', err);
+    }
+};
+
 // Use an IIFE to avoid global namespace pollution
 (function() {
     const { domReady } = wp;
@@ -71,7 +81,7 @@ const displayRelevantDetails = (content, terms, sortType, showUnusedOnly, search
     const blocks = selectData('core/block-editor').getBlocks();
     const headingDensity = computeRelevantDensityForHeadings(blocks, termsArray);
 
-    let detailsHTML = '<div class="relevant-density"><strong>Relevant Density in Headings:</strong> ' + headingDensity.toFixed(2) + '%</div>' + 
+    let detailsHTML = '<div class="relevant-density"><strong>Relevant Density in Headings:</strong> ' + headingDensity.toFixed(2) + '%</div>' +
                       '<div class="relevant-density"><strong>Relevant Density Overall:</strong> ' + density.toFixed(2) + '%</div>';
 
     const termDetails = termsArray.map(term => {
@@ -92,27 +102,19 @@ const displayRelevantDetails = (content, terms, sortType, showUnusedOnly, search
     const filteredDetails = showUnusedOnly ? termDetails.filter(detail => detail.count === 0) : termDetails;
 
     filteredDetails.filter(detail => detail.term.toLowerCase().includes(currentSearchTerm.toLowerCase())).forEach(detail => {
-        const termElement = `<div class="term-frequency" style="background-color: ${detail.count > 0 ? 'lightgreen' : 'lightred'}" data-term="${detail.term}">${detail.term} <sup>${detail.count}</sup></div>`;
+        // Create term element with onclick attribute directly in HTML
+        const safeTermAttr = detail.term.replace(/"/g, '&quot;');
+        const termElement = '<div class="term-frequency" style="background-color: ' +
+            (detail.count > 0 ? 'lightgreen' : 'lightred') +
+            '" data-term="' + safeTermAttr +
+            '" onclick="copyToClipboard(event)">' +
+            detail.term + ' <sup>' + detail.count + '</sup></div>';
         detailsHTML += termElement;
     });
 
     const sidebarElement = document.querySelector('.relevant-density-optimizer .relevant-details');
     if (sidebarElement) {
         sidebarElement.innerHTML = detailsHTML;
-        
-        // Add event delegation for term copying instead of inline handlers
-        sidebarElement.addEventListener('click', async (event) => {
-            const termElement = event.target.closest('.term-frequency');
-            if (termElement) {
-                const term = termElement.getAttribute('data-term');
-                try {
-                    await navigator.clipboard.writeText(term);
-                    console.log('Term copied:', term);
-                } catch (err) {
-                    console.error('Failed to copy text: ', err);
-                }
-            }
-        });
     }
 };
 
@@ -303,7 +305,8 @@ const highlightTerms = (termsArray, blocks = null) => {
     });
 };
 
-// copyToClipboard function removed as we're now using event delegation
+// Function moved to global scope at the top of the file
+
 const ImportantTermsComponent = compose([
     withSelect(selectFunc => ({
         metaFieldValue: selectFunc('core/editor').getEditedPostAttribute('meta')['_important_terms'],

@@ -16,16 +16,21 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('RDOINFINITNET_VERSION', '1.7.321');
+define('RDOINFINITNET_VERSION', '1.7.3');
 
 function rdoinfinitnet_enqueue_block_editor_assets() {
+    // Only proceed if user has appropriate permissions
+    if (!current_user_can('edit_posts')) {
+        return;
+    }
+
     if (!wp_script_is('rdoinfinitnet-plugin-js', 'enqueued')) {
         wp_enqueue_script(
             'rdoinfinitnet-plugin-js',
             plugin_dir_url(__FILE__) . 'rdoinfinitnet.js',
             array(
                 'wp-plugins',
-                'wp-editor', 
+                'wp-editor',
                 'wp-element',
                 'wp-data',
                 'wp-compose',
@@ -36,6 +41,16 @@ function rdoinfinitnet_enqueue_block_editor_assets() {
             ),
             RDOINFINITNET_VERSION,
             true
+        );
+        
+        // Add a nonce for the editor operations
+        wp_localize_script(
+            'rdoinfinitnet-plugin-js',
+            'rdoinfinitnetData',
+            array(
+                'nonce' => wp_create_nonce('rdoinfinitnet_nonce'),
+                'ajaxUrl' => admin_url('admin-ajax.php')
+            )
         );
     }
 
