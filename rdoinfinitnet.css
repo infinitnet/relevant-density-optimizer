@@ -1,30 +1,30 @@
 /* Container Styles */
-.rdo-sidebar-container {
+.rdoinfinitnet-sidebar-container {
     padding: 16px;
     box-sizing: border-box;
     color: #1e1e1e;
 }
 
 /* Input Section */
-.rdo-input-section {
+.rdoinfinitnet-input-section {
     margin-bottom: 24px;
 }
 
-.rdo-textarea textarea {
+.rdoinfinitnet-textarea textarea {
     min-height: 120px;
     border-color: #8c8f94;
     border-radius: 2px;
     padding: 8px;
 }
 
-.rdo-textarea textarea:focus {
+.rdoinfinitnet-textarea textarea:focus {
     border-color: #2271b1;
     box-shadow: 0 0 0 1px #2271b1;
     outline: 2px solid transparent;
 }
 
 /* Controls Section */
-.rdo-controls-section {
+.rdoinfinitnet-controls-section {
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -33,7 +33,7 @@
     border-bottom: 1px solid #dcdcde;
 }
 
-.rdo-update-button {
+.rdoinfinitnet-update-button {
     margin-top: 8px !important;
     width: 100%;
     justify-content: center;
@@ -42,20 +42,20 @@
 }
 
 /* Filter Section */
-.rdo-filter-section {
+.rdoinfinitnet-filter-section {
     display: flex;
     flex-direction: column;
     gap: 16px;
     margin-bottom: 24px;
 }
 
-.rdo-select-label {
+.rdoinfinitnet-select-label {
     display: block;
     margin-bottom: 4px;
     font-size: 13px;
 }
 
-.rdo-select {
+.rdoinfinitnet-select {
     width: 100%;
     min-height: 36px;
     padding: 8px;
@@ -65,17 +65,17 @@
     font-size: 13px;
 }
 
-.rdo-select:focus {
+.rdoinfinitnet-select:focus {
     border-color: #2271b1;
     box-shadow: 0 0 0 1px #2271b1;
     outline: 2px solid transparent;
 }
 
-.rdo-search-container {
+.rdoinfinitnet-search-container {
     margin-top: 8px;
 }
 
-.rdo-search-input {
+.rdoinfinitnet-search-input {
     width: 100%;
     min-height: 36px;
     padding: 8px;
@@ -84,14 +84,14 @@
     font-size: 13px;
 }
 
-.rdo-search-input:focus {
+.rdoinfinitnet-search-input:focus {
     border-color: #2271b1;
     box-shadow: 0 0 0 1px #2271b1;
     outline: 2px solid transparent;
 }
 
 /* Results Section */
-.rdo-results-section {
+.rdoinfinitnet-results-section {
     margin-top: 16px;
 }
 
@@ -138,13 +138,13 @@
 }
 
 /* WordPress Admin Context */
-#editor .rdo-sidebar-container .components-base-control {
+#editor .rdoinfinitnet-sidebar-container .components-base-control {
     margin-bottom: 16px;
 }
 
 /* Responsive Design */
 @media (max-width: 782px) {
-    .rdo-sidebar-container {
+    .rdoinfinitnet-sidebar-container {
         padding: 12px;
     }
     
@@ -153,8 +153,8 @@
         margin: 6px;
     }
     
-    .rdo-select,
-    .rdo-search-input {
+    .rdoinfinitnet-select,
+    .rdoinfinitnet-search-input {
         min-height: 40px;
     }
 }

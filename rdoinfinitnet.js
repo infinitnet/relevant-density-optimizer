@@ -92,13 +92,27 @@ const displayRelevantDetails = (content, terms, sortType, showUnusedOnly, search
     const filteredDetails = showUnusedOnly ? termDetails.filter(detail => detail.count === 0) : termDetails;
 
     filteredDetails.filter(detail => detail.term.toLowerCase().includes(currentSearchTerm.toLowerCase())).forEach(detail => {
-        const termElement = `<div class="term-frequency" style="background-color: ${detail.count > 0 ? 'lightgreen' : 'lightred'}" data-term="${detail.term}" onclick="copyToClipboard(event)">${detail.term} <sup>${detail.count}</sup></div>`;
+        const termElement = `<div class="term-frequency" style="background-color: ${detail.count > 0 ? 'lightgreen' : 'lightred'}" data-term="${detail.term}">${detail.term} <sup>${detail.count}</sup></div>`;
         detailsHTML += termElement;
     });
 
     const sidebarElement = document.querySelector('.relevant-density-optimizer .relevant-details');
     if (sidebarElement) {
         sidebarElement.innerHTML = detailsHTML;
+        
+        // Add event delegation for term copying instead of inline handlers
+        sidebarElement.addEventListener('click', async (event) => {
+            const termElement = event.target.closest('.term-frequency');
+            if (termElement) {
+                const term = termElement.getAttribute('data-term');
+                try {
+                    await navigator.clipboard.writeText(term);
+                    console.log('Term copied:', term);
+                } catch (err) {
+                    console.error('Failed to copy text: ', err);
+                }
+            }
+        });
     }
 };
 
@@ -231,10 +245,10 @@ const highlightTerms = (termsArray, blocks = null) => {
     removeHighlighting();
     
     // Ensure CSS is properly injected
-    const existingStyle = editorFrame.contentDocument.querySelector('#rdo-highlight-style');
+    const existingStyle = editorFrame.contentDocument.querySelector('#rdoinfinitnet-highlight-style');
     if (!existingStyle) {
         const styleElement = editorFrame.contentDocument.createElement('style');
-        styleElement.id = 'rdo-highlight-style';
+        styleElement.id = 'rdoinfinitnet-highlight-style';
         styleElement.textContent = `
             .highlight-term {
                 background-color: rgba(112, 199, 124, 0.15) !important;
@@ -289,15 +303,7 @@ const highlightTerms = (termsArray, blocks = null) => {
     });
 };
 
-async function copyToClipboard(event) {
-    const term = event.currentTarget.getAttribute('data-term');
-    try {
-        await navigator.clipboard.writeText(term);
-    } catch (err) {
-        console.error('Failed to copy text: ', err);
-    }
-}
-
+// copyToClipboard function removed as we're now using event delegation
 const ImportantTermsComponent = compose([
     withSelect(selectFunc => ({
         metaFieldValue: selectFunc('core/editor').getEditedPostAttribute('meta')['_important_terms'],
@@ -442,17 +448,17 @@ const ImportantTermsComponent = compose([
 
     return termsHighlighterEl(
         'div',
-        { className: 'rdo-sidebar-container' },
-        termsHighlighterEl('div', { className: 'rdo-input-section' },
+        { className: 'rdoinfinitnet-sidebar-container' },
+        termsHighlighterEl('div', { className: 'rdoinfinitnet-input-section' },
             termsHighlighterEl(TextareaControl, {
                 label: "Relevant Terms",
                 value: localTerms,
                 onChange: setLocalTerms,
                 __nextHasNoMarginBottom: true,
-                className: 'rdo-textarea'
+                className: 'rdoinfinitnet-textarea'
             })
         ),
-        termsHighlighterEl('div', { className: 'rdo-controls-section' },
+        termsHighlighterEl('div', { className: 'rdoinfinitnet-controls-section' },
             termsHighlighterEl(ToggleControl, {
                 label: 'Highlight Terms',
                 checked: isHighlightingEnabled,
@@ -462,15 +468,15 @@ const ImportantTermsComponent = compose([
             termsHighlighterEl(Button, {
                 isPrimary: true,
                 onClick: saveTerms,
-                className: 'rdo-update-button'
+                className: 'rdoinfinitnet-update-button'
             }, 'Update Terms')
         ),
-        termsHighlighterEl('div', { className: 'rdo-filter-section' },
-            termsHighlighterEl('label', { className: 'rdo-select-label' }, 'Sort Terms'),
+        termsHighlighterEl('div', { className: 'rdoinfinitnet-filter-section' },
+            termsHighlighterEl('label', { className: 'rdoinfinitnet-select-label' }, 'Sort Terms'),
             termsHighlighterEl('select', {
                 value: sortType,
                 onChange: event => setSortType(event.target.value),
-                className: 'rdo-select'
+                className: 'rdoinfinitnet-select'
                 },
                 termsHighlighterEl('option', { value: 'Count descending' }, 'Count descending'),
                 termsHighlighterEl('option', { value: 'Count ascending' }, 'Count ascending'),
@@ -482,17 +488,17 @@ const ImportantTermsComponent = compose([
                 onChange: () => setShowUnusedOnly(!showUnusedOnly),
                 __nextHasNoMarginBottom: true
             }),
-            termsHighlighterEl('div', { className: 'rdo-search-container' },
+            termsHighlighterEl('div', { className: 'rdoinfinitnet-search-container' },
                 termsHighlighterEl('input', {
                     type: 'text',
                     placeholder: 'Search terms...',
                     value: searchTerm,
                     onChange: event => setSearchTerm(event.target.value),
-                    className: 'rdo-search-input searchTermInput'
+                    className: 'rdoinfinitnet-search-input searchTermInput'
                 })
             )
         ),
-        termsHighlighterEl('div', { className: 'rdo-results-section relevant-density-optimizer' },
+        termsHighlighterEl('div', { className: 'rdoinfinitnet-results-section relevant-density-optimizer' },
             termsHighlighterEl('div', { className: 'relevant-details' })
         )
     );
@@ -585,4 +591,3 @@ const clearGlobalVariables = () => {
 
 // Close the IIFE that was opened at the beginning of the file
 })();
-

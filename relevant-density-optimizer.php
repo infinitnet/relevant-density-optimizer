@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Relevant Density Optimizer (RDO) - On-Page SEO Plugin
+ * Plugin Name: Relevant Density Optimizer (RDO) - On-Page SEO Tool
  * Description: Highlight terms in Gutenberg editor and optimize relevant density for SEO.
  * Author: Infinitnet
  * Author URI: https://infinitnet.io/
@@ -10,19 +10,19 @@
  * Text Domain: relevant-density-optimizer
  */
 
-namespace Infinitnet\RDO;
+namespace Infinitnet\RDOINFINITNET;
 
 if (!defined('ABSPATH')) {
     exit;
 }
 
-define('RDO_VERSION', '1.7.3');
+define('RDOINFINITNET_VERSION', '1.7.321');
 
-function rdo_enqueue_block_editor_assets() {
-    if (!wp_script_is('rdo-plugin-js', 'enqueued')) {
+function rdoinfinitnet_enqueue_block_editor_assets() {
+    if (!wp_script_is('rdoinfinitnet-plugin-js', 'enqueued')) {
         wp_enqueue_script(
-            'rdo-plugin-js', 
-            plugin_dir_url(__FILE__) . 'rdo.js', 
+            'rdoinfinitnet-plugin-js',
+            plugin_dir_url(__FILE__) . 'rdoinfinitnet.js',
             array(
                 'wp-plugins',
                 'wp-editor', 
@@ -34,15 +34,15 @@ function rdo_enqueue_block_editor_assets() {
                 'wp-i18n',
                 'wp-dom-ready'
             ),
-            RDO_VERSION, 
+            RDOINFINITNET_VERSION,
             true
         );
     }
 
-    wp_enqueue_style('rdo-plugin-css', plugin_dir_url(__FILE__) . 'rdo.css', array(), RDO_VERSION);
+    wp_enqueue_style('rdoinfinitnet-plugin-css', plugin_dir_url(__FILE__) . 'rdoinfinitnet.css', array(), RDOINFINITNET_VERSION);
 }
 
-function rdo_register_meta() {
+function rdoinfinitnet_register_meta() {
     register_meta('post', '_important_terms', array(
         'show_in_rest' => true,
         'single' => true,
@@ -54,5 +54,5 @@ function rdo_register_meta() {
     ));
 }
 
-add_action('enqueue_block_editor_assets', __NAMESPACE__ . '\\rdo_enqueue_block_editor_assets');
-add_action('init', __NAMESPACE__ . '\\rdo_register_meta');
+add_action('enqueue_block_editor_assets', __NAMESPACE__ . '\\rdoinfinitnet_enqueue_block_editor_assets');
+add_action('init', __NAMESPACE__ . '\\rdoinfinitnet_register_meta');

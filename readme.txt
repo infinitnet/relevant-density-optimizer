@@ -1,9 +1,9 @@
-=== Relevant Density Optimizer (RDO) - On-Page SEO Plugin ===
+=== Relevant Density Optimizer (RDO) - On-Page SEO Tool ===
 Contributors: infinitnet
 Donate link: https://infinitnet.io/
 Tags: seo, content optimization, keyword density, gutenberg, editor
 Requires at least: 5.0
-Tested up to: 6.7.2
+Tested up to: 6.7
 Stable tag: 1.7.3
 Requires PHP: 7.0
 License: GPLv2 or later
