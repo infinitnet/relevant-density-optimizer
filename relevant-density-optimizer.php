@@ -5,7 +5,7 @@
  * Author: Infinitnet
  * Author URI: https://infinitnet.io/
  * Plugin URI: https://infinitnet.io/relevant-density-optimizer/
- * Version: 1.7.3
+ * Version: 1.8.0
  * License: GPLv2 or later
  * Text Domain: relevant-density-optimizer
  */
@@ -16,7 +16,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('RDOINFINITNET_VERSION', '1.7.3');
+define('RDOINFINITNET_VERSION', '1.8.0');
 
 function rdoinfinitnet_enqueue_block_editor_assets() {
     // Only proceed if user has appropriate permissions

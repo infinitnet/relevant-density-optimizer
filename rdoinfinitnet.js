@@ -31,6 +31,28 @@ let cachedTerms = '';
 let processedTermsArray = []; // Cache for processed terms
 const TERMS_SPLIT_REGEX = /\s*,\s*|\s*\n\s*/;
 
+// Helper function to process terms consistently across the application
+const processTerms = (terms) => {
+    if (!terms) return [];
+    
+    return terms.split(TERMS_SPLIT_REGEX)
+        .map(term => term.trim())
+        .filter(term => term !== "");
+};
+
+// Helper function for saving terms with additional filtering
+const processSaveTerms = (terms) => {
+    return processTerms(terms)
+        .map(term => term.toLowerCase())
+        .filter(term => !term.includes('=='));
+};
+
+// Helper function to process and sort terms by length (for highlighting)
+const processTermsForHighlighting = (terms) => {
+    return processTerms(terms)
+        .sort((a, b) => b.length - a.length);
+};
+
 const computeRelevantDensity = (content, termsArray) => {
     const contentWords = content.split(/\s+/);
     const totalWords = contentWords.length;
@@ -71,20 +93,18 @@ const displayRelevantDetails = (content, terms, sortType, showUnusedOnly, search
     if (!terms) return;
 
     const currentSearchTerm = searchTerm || "";
+    const termsArray = processTerms(terms).map(term => term.toLowerCase());
+    // Remove duplicates
+    const uniqueTermsArray = [...new Set(termsArray)];
 
-    const termsArray = terms.split(TERMS_SPLIT_REGEX)
-                           .map(term => term.toLowerCase().trim())
-                           .filter(term => term !== "")
-                           .filter((term, index, self) => self.indexOf(term) === index);
-
-    const density = computeRelevantDensity(content, termsArray);
+    const density = computeRelevantDensity(content, uniqueTermsArray);
     const blocks = selectData('core/block-editor').getBlocks();
-    const headingDensity = computeRelevantDensityForHeadings(blocks, termsArray);
+    const headingDensity = computeRelevantDensityForHeadings(blocks, uniqueTermsArray);
 
     let detailsHTML = '<div class="relevant-density"><strong>Relevant Density in Headings:</strong> ' + headingDensity.toFixed(2) + '%</div>' +
                       '<div class="relevant-density"><strong>Relevant Density Overall:</strong> ' + density.toFixed(2) + '%</div>';
 
-    const termDetails = termsArray.map(term => {
+    const termDetails = uniqueTermsArray.map(term => {
         const regex = new RegExp("\\b" + term + "\\b", "gi");
         const matches = content.match(regex);
         const count = (matches ? matches.length : 0);
@@ -104,8 +124,9 @@ const displayRelevantDetails = (content, terms, sortType, showUnusedOnly, search
     filteredDetails.filter(detail => detail.term.toLowerCase().includes(currentSearchTerm.toLowerCase())).forEach(detail => {
         // Create term element with onclick attribute directly in HTML
         const safeTermAttr = detail.term.replace(/"/g, '&quot;');
-        const termElement = '<div class="term-frequency" style="background-color: ' +
-            (detail.count > 0 ? 'lightgreen' : 'lightred') +
+        // Using CSS classes instead of inline styles for better performance
+        const termClass = detail.count > 0 ? 'has-occurrences' : 'no-occurrences';
+        const termElement = '<div class="term-frequency ' + termClass +
             '" data-term="' + safeTermAttr +
             '" onclick="copyToClipboard(event)">' +
             detail.term + ' <sup>' + detail.count + '</sup></div>';
@@ -136,18 +157,32 @@ const debounce = (func, wait) => {
 };
 
 const debouncedDisplayRelevantDetails = debounce(displayRelevantDetails, 1000);
-
-const removeHighlighting = () => {
-    const editorFrame = document.querySelector('iframe[name="editor-canvas"]');
-    if (!editorFrame || !editorFrame.contentDocument) return;
+const removeHighlighting = (specificBlockId = null) => {
+    // Helper function to remove highlights from a document
+    const removeHighlightsFromDoc = (doc) => {
+        // If a specific block ID is provided, only remove highlights from that block
+        const selector = specificBlockId
+            ? `[data-block="${specificBlockId}"] .highlight-term`
+            : ".highlight-term";
+            
+        doc.querySelectorAll(selector).forEach(span => {
+            const parent = span.parentElement;
+            while (span.firstChild) {
+                parent.insertBefore(span.firstChild, span);
+            }
+            parent.removeChild(span);
+        });
+    };
     
-    editorFrame.contentDocument.querySelectorAll(".highlight-term").forEach(span => {
-        const parent = span.parentElement;
-        while (span.firstChild) {
-            parent.insertBefore(span.firstChild, span);
-        }
-        parent.removeChild(span);
-    });
+    // Try iframe first
+    const editorFrame = document.querySelector('iframe[name="editor-canvas"]');
+    if (editorFrame && editorFrame.contentDocument) {
+        removeHighlightsFromDoc(editorFrame.contentDocument);
+        return;
+    }
+    
+    // If no iframe, remove from main document
+    removeHighlightsFromDoc(document);
 };
 
 const removeHighlightingFromContent = (content) => {
@@ -231,51 +266,81 @@ const highlightText = (node, patterns) => {
         Array.from(node.childNodes).forEach(child => highlightText(child, patterns));
     }
 };
-
 const highlightTerms = (termsArray, blocks = null) => {
     if (!termsArray || termsArray.length === 0) return;
     
-    const pattern = createHighlightPattern(termsArray);
+    // Get the currently selected block ID
+    const selectedBlock = selectData('core/block-editor').getSelectedBlock();
+    const activeBlockId = selectedBlock?.clientId;
     
-    // Get the editor iframe
-    const editorFrame = document.querySelector('iframe[name="editor-canvas"]');
-    if (!editorFrame || !editorFrame.contentDocument) {
+    // Get the editor context information
+    const getEditorContext = () => {
+        // Approach 1: Try the iframe approach (works for some WP setups)
+        const editorFrame = document.querySelector('iframe[name="editor-canvas"]');
+        if (editorFrame && editorFrame.contentDocument) {
+            return {
+                doc: editorFrame.contentDocument,
+                root: editorFrame.contentDocument.body
+            };
+        }
+        
+        // Approach 2: Find the editor content area in the main document
+        // This is more reliable and works on newer WordPress versions
+        const editorContent = document.querySelector('.interface-interface-skeleton__content');
+        if (editorContent) {
+            return {
+                doc: document,
+                root: editorContent
+            };
+        }
+        
+        // Approach 3: Try by aria-label as a fallback
+        const editorByAriaLabel = document.querySelector('[aria-label="Editor content"]');
+        if (editorByAriaLabel) {
+            return {
+                doc: document,
+                root: editorByAriaLabel
+            };
+        }
+        
+        // No editor found
+        return null;
+    };
+    
+    // Get editor context
+    const editorContext = getEditorContext();
+    
+    // If no editor context found, retry after a delay
+    if (!editorContext) {
         setTimeout(() => highlightTerms(termsArray, blocks), 100);
         return;
     }
     
+    const { doc, root } = editorContext;
+    
+    // Remove any existing highlighting
     removeHighlighting();
     
     // Ensure CSS is properly injected
-    const existingStyle = editorFrame.contentDocument.querySelector('#rdoinfinitnet-highlight-style');
+    const existingStyle = doc.querySelector('#rdoinfinitnet-highlight-style');
     if (!existingStyle) {
-        const styleElement = editorFrame.contentDocument.createElement('style');
+        const styleElement = doc.createElement('style');
         styleElement.id = 'rdoinfinitnet-highlight-style';
         styleElement.textContent = `
             .highlight-term {
                 background-color: rgba(112, 199, 124, 0.15) !important;
                 border-bottom: 2px solid rgba(112, 199, 124, 0.4);
                 border-radius: 1px;
-                padding: 0 1px;
-                margin: 0 1px;
+                padding: 0;
+                margin: 0;
                 transition: background-color 0.2s ease, border-bottom-color 0.2s ease;
                 text-decoration-skip-ink: none;
-            }
-            
-            .highlight-term:hover {
-                background-color: rgba(112, 199, 124, 0.25) !important;
-                border-bottom-color: rgba(112, 199, 124, 0.6);
             }
             
             /* Dark theme support */
             .is-dark-theme .highlight-term {
                 background-color: rgba(112, 199, 124, 0.12) !important;
                 border-bottom-color: rgba(112, 199, 124, 0.35);
-            }
-            
-            .is-dark-theme .highlight-term:hover {
-                background-color: rgba(112, 199, 124, 0.2) !important;
-                border-bottom-color: rgba(112, 199, 124, 0.5);
             }
             
             /* High contrast mode support */
@@ -287,11 +352,14 @@ const highlightTerms = (termsArray, blocks = null) => {
                 }
             }
         `;
-        editorFrame.contentDocument.head.appendChild(styleElement);
+        doc.head.appendChild(styleElement);
     }
     
-    // Query within the iframe's document
-    const editorContent = editorFrame.contentDocument.querySelectorAll('.block-editor-rich-text__editable');
+    // Create highlight pattern
+    const pattern = createHighlightPattern(termsArray);
+    
+    // Find all editable content blocks within the context
+    const editorContent = root.querySelectorAll('.block-editor-rich-text__editable');
 
     if (!editorContent.length) {
         setTimeout(() => highlightTerms(termsArray, blocks), 100);
@@ -299,7 +367,11 @@ const highlightTerms = (termsArray, blocks = null) => {
     }
 
     editorContent.forEach(element => {
-        if (element.textContent.trim()) {
+        // Skip highlighting for the block currently being edited
+        const blockClientId = element.closest('[data-block]')?.getAttribute('data-block');
+        const isActiveBlock = blockClientId === activeBlockId;
+        
+        if (element.textContent.trim() && !isActiveBlock) {
             highlightText(element, pattern);
         }
     });
@@ -337,10 +409,7 @@ const ImportantTermsComponent = compose([
 
     useEffect(() => {
         if (globalHighlightingState) {
-            processedTermsArray = localTerms.split(TERMS_SPLIT_REGEX)
-                .map(term => term.trim())
-                .filter(term => term !== "")
-                .sort((a, b) => b.length - a.length);
+            processedTermsArray = processTermsForHighlighting(localTerms);
                 
             if (processedTermsArray.length > 0) {
                 removeHighlighting();
@@ -353,16 +422,16 @@ const ImportantTermsComponent = compose([
         }
     }, [localTerms]); // Only trigger when terms change
 
+    // Note: We've removed the event handlers that attempted to fix cursor positioning
+    // because they were ineffective at solving the fundamental DOM fragmentation issue
+
     const handleToggle = () => {
         toggleHighlighting(!isHighlightingEnabled);
         globalHighlightingState = !isHighlightingEnabled;
         cachedTerms = localTerms;
         
         if (globalHighlightingState) {
-            processedTermsArray = localTerms.split(TERMS_SPLIT_REGEX)
-                .map(term => term.trim())
-                .filter(term => term !== "")
-                .sort((a, b) => b.length - a.length);
+            processedTermsArray = processTermsForHighlighting(localTerms);
                 
             if (processedTermsArray.length > 0) {
                 highlightTerms(processedTermsArray);
@@ -385,15 +454,12 @@ const ImportantTermsComponent = compose([
         
         // Ensure highlighting state persists
         if (globalHighlightingState) {
-            const terms = localTerms.split(TERMS_SPLIT_REGEX)
-                .map(term => term.trim())
-                .filter(term => term !== "");
-            if (terms.length > 0) {
-                console.log('Initial highlighting with terms:', terms);
-                highlightTerms(terms);
+            processedTermsArray = processTermsForHighlighting(localTerms);
+                
+            if (processedTermsArray.length > 0) {
+                highlightTerms(processedTermsArray);
             }
         }
-        
         // Cleanup on unmount
         return () => {
             if (subscription) {
@@ -409,18 +475,15 @@ const ImportantTermsComponent = compose([
     }, [localTerms]);
 
     const saveTerms = () => {
-        let terms = localTerms.split(TERMS_SPLIT_REGEX);
-        terms = terms.map(term => term.toLowerCase().trim());
-        terms = terms.filter(term => term !== "");
-        terms = terms.filter(term => !term.includes('=='));
-        terms = [...new Set(terms)];
-        const cleanedTerms = terms.join('\n');
+        const terms = processSaveTerms(localTerms);
+        const uniqueTerms = [...new Set(terms)];
+        const cleanedTerms = uniqueTerms.join('\n');
         
         props.setMetaFieldValue(cleanedTerms).then(() => {
             setLocalTerms(cleanedTerms);
             
             if (globalHighlightingState) {
-                processedTermsArray = terms.sort((a, b) => b.length - a.length);
+                processedTermsArray = uniqueTerms.sort((a, b) => b.length - a.length);
                 removeHighlighting();
                 setTimeout(() => {
                     if (processedTermsArray.length > 0) {
@@ -536,6 +599,7 @@ const handleEditorChange = () => {
     
     displayRelevantDetails(newContent, currentTerms);
 
+    // In the editor change handler, refresh highlighting
     if (globalHighlightingState && processedTermsArray.length > 0) {
         removeHighlighting();
         setTimeout(() => {
@@ -561,22 +625,22 @@ const subscribeEditorChange = () => {
         const currentBlockId = selectedBlock?.clientId;
         
         // Only trigger if something actually changed
-        if (currentContent !== lastComputedContent || 
-            currentBlockId !== lastSelectedBlockId) {
+        if (currentContent !== lastComputedContent || currentBlockId !== lastSelectedBlockId) {
+            // Store previous block ID before updating
+            const previousBlockId = lastSelectedBlockId;
             
-            console.log('Change detected:', {
-                contentChanged: currentContent !== lastComputedContent,
-                blockChanged: currentBlockId !== lastSelectedBlockId,
-                globalHighlightingState,
-                hasCachedTerms: Boolean(cachedTerms)
-            });
-            
+            // Update tracking variable
             lastSelectedBlockId = currentBlockId;
             
-            // Use shorter debounce for block changes
-            if (currentBlockId !== lastSelectedBlockId) {
-                setTimeout(handleEditorChange, 50);
+            // Block selection changed
+            if (currentBlockId !== previousBlockId) {
+                // Use a small timeout to ensure the editor has finished updating
+                setTimeout(() => {
+                    handleEditorChange();
+                }, 50);
             } else {
+                // For content changes within the same block, use debounce
+                // The active block skipping in highlightTerms ensures smooth editing
                 debouncedHandleEditorChange();
             }
         }
@@ -586,11 +650,26 @@ const subscribeEditorChange = () => {
     return subscription;
 };
 
+// Function to cleanup state when plugin is deactivated or editor is closed
 const clearGlobalVariables = () => {
     globalHighlightingState = false;
     lastComputedContent = '';
     lastComputedTerms = '';
+    processedTermsArray = [];
+    cachedTerms = '';
+    
+    // Clean up any highlights that might still be in the DOM
+    removeHighlighting();
+    
+    // Clean up editor subscription
+    if (editorSubscription) {
+        editorSubscription();
+        editorSubscription = null;
+    }
 };
+
+// Register cleanup function with window unload event
+window.addEventListener('beforeunload', clearGlobalVariables);
 
 // Close the IIFE that was opened at the beginning of the file
 })();

@@ -127,12 +127,12 @@
     outline-offset: 1px;
 }
 
-.term-frequency[style*="lightgreen"] {
+.term-frequency.has-occurrences {
     background-color: #e5f5e8;
     border: 1px solid #70c77c;
 }
 
-.term-frequency[style*="lightred"] {
+.term-frequency.no-occurrences {
     background-color: #fde8e8;
     border: 1px solid #e66969;
 }
