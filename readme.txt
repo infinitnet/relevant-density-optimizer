@@ -3,9 +3,9 @@ Contributors: infinitnet
 Donate link: https://infinitnet.io/
 Tags: seo, content optimization, keyword density, gutenberg, editor
 Requires at least: 5.0
-Tested up to: 6.7
+Tested up to: 6.8
 Stable tag: 1.8.0
-Requires PHP: 7.0
+Requires PHP: 7.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -13,7 +13,7 @@ Optimize your content's SEO by highlighting important terms and analyzing their 
 
 == Description ==
 
-Relevant Density Optimizer (RDO) is a powerful SEO tool that helps you optimize the density of important keywords and phrases in your content. By analyzing and highlighting term usage directly in the Gutenberg editor, RDO provides real-time insights to improve your on-page SEO.
+Relevant Density Optimizer (RDO) is a powerful SEO tool that helps you optimize the density of important keywords, entities, and phrases in your content. By analyzing and highlighting term usage directly in the Gutenberg editor, RDO provides real-time insights to improve your on-page SEO.
 
 = Key Features =
 
@@ -70,8 +70,6 @@ RDO is designed to be lightweight and efficient. The term highlighting feature u
 
 1. RDO sidebar in the Gutenberg editor
 2. Term highlighting in action
-3. Density statistics and term frequency display
-4. Filter and search functionality
 
 == Changelog ==
 
