@@ -1,0 +1,171 @@
+name: Deploy to WordPress.org
+
+# Publishes to https://wordpress.org/plugins/relevant-density-optimizer/
+# when a push to main raises the plugin version.
+#
+# Required GitHub Actions repository secrets, not environment secrets.
+# Same pair as infinitnet/rapidurlindexer-wp:
+#   SVN_USERNAME  WordPress.org username
+#   SVN_PASSWORD  WordPress.org password
+# A version bump must change all three of these together:
+#   relevant-density-optimizer.php Version header
+#   RDOINFINITNET_VERSION
+#   readme.txt Stable tag
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wporg-deploy-relevant-density-optimizer
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Publish clean plugin package on version bump
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.3
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Detect synchronized version bump
+        id: version
+        shell: bash
+        env:
+          GITHUB_EVENT_BEFORE: ${{ github.event.before }}
+        run: python3 scripts/wporg-version-gate.py
+
+      - name: Build clean plugin package
+        if: steps.version.outputs.publish == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf dist
+          mkdir -p dist/relevant-density-optimizer
+          git archive --format=tar HEAD \
+            readme.txt \
+            relevant-density-optimizer.php \
+            rdoinfinitnet.js \
+            rdoinfinitnet.css \
+            | tar -x -C dist/relevant-density-optimizer
+
+      - name: Verify package contents
+        if: steps.version.outputs.publish == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_dir="dist/relevant-density-optimizer"
+          version="${{ steps.version.outputs.version }}"
+          test -f "$package_dir/relevant-density-optimizer.php"
+          test -f "$package_dir/readme.txt"
+          test -f "$package_dir/rdoinfinitnet.js"
+          test -f "$package_dir/rdoinfinitnet.css"
+          grep -q "Version: ${version}" "$package_dir/relevant-density-optimizer.php"
+          grep -q "define('RDOINFINITNET_VERSION', '${version}');" "$package_dir/relevant-density-optimizer.php"
+          grep -q "Stable tag: ${version}" "$package_dir/readme.txt"
+
+          expected="rdoinfinitnet.css
+          rdoinfinitnet.js
+          readme.txt
+          relevant-density-optimizer.php"
+          actual="$(cd "$package_dir" && find . -mindepth 1 -printf '%P\n' | LC_ALL=C sort)"
+          if [ "$actual" != "$(printf '%s\n' $expected | LC_ALL=C sort)" ]; then
+            echo "Unexpected package file set:" >&2
+            echo "$actual" >&2
+            exit 1
+          fi
+
+          forbidden=(
+            .distignore
+            .gitignore
+            .git
+            .github
+            .wordpress-org
+            tests
+            scripts
+            graphify-out
+            .hermes
+            AGENTS.md
+            node_modules
+            vendor
+          )
+          for path in "${forbidden[@]}"; do
+            if [ -e "$package_dir/$path" ]; then
+              echo "Forbidden release artifact found: $path" >&2
+              exit 1
+            fi
+          done
+
+      - name: Require WordPress.org credentials
+        if: steps.version.outputs.publish == 'true'
+        shell: bash
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SVN_USERNAME}" ] || [ -z "${SVN_PASSWORD}" ]; then
+            echo "WordPress.org deploy needs repository secrets SVN_USERNAME and SVN_PASSWORD." >&2
+            echo "Add both under Repository secrets, not Environment secrets:" >&2
+            echo "https://github.com/infinitnet/relevant-density-optimizer/settings/secrets/actions" >&2
+            echo "Use the same WordPress.org username and password already stored on infinitnet/rapidurlindexer-wp." >&2
+            exit 1
+          fi
+
+      - name: Install Subversion
+        if: steps.version.outputs.publish == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v svn >/dev/null 2>&1; then
+            sudo apt-get update -y
+            sudo apt-get install -y subversion
+          fi
+          svn --version --quiet
+
+      - name: Check WordPress.org tag
+        if: steps.version.outputs.publish == 'true'
+        id: wporg_tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag_url="https://plugins.svn.wordpress.org/relevant-density-optimizer/tags/${{ steps.version.outputs.version }}/"
+          if svn ls "$tag_url" >/dev/null 2>&1; then
+            echo "already_published=true" >> "$GITHUB_OUTPUT"
+            echo "WordPress.org tag already exists: $tag_url"
+          else
+            echo "already_published=false" >> "$GITHUB_OUTPUT"
+            echo "WordPress.org tag does not exist yet: $tag_url"
+          fi
+
+      - name: Deploy to WordPress.org
+        if: steps.version.outputs.publish == 'true' && steps.wporg_tag.outputs.already_published == 'false'
+        # Pinned to the same commit used by infinitnet/rapidurlindexer-wp. This step receives SVN credentials.
+        uses: 10up/action-wordpress-plugin-deploy@54bd289b8525fd23a5c365ec369185f2966529c2
+        env:
+          SLUG: relevant-density-optimizer
+          VERSION: ${{ steps.version.outputs.version }}
+          BUILD_DIR: dist/relevant-density-optimizer
+          ASSETS_DIR: .wordpress-org
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+
+      - name: Report skipped deployment
+        if: steps.version.outputs.publish != 'true' || steps.wporg_tag.outputs.already_published == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ steps.version.outputs.publish }}" != "true" ]; then
+            echo "Deployment skipped: version was not bumped."
+          else
+            echo "Deployment skipped: version ${{ steps.version.outputs.version }} is already published on WordPress.org."
+          fi

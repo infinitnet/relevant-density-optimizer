@@ -532,7 +532,7 @@ const ImportantTermsComponent = compose([
                 __nextHasNoMarginBottom: true
             }),
             termsHighlighterEl(Button, {
-                isPrimary: true,
+                variant: 'primary',
                 onClick: saveTerms,
                 className: 'rdoinfinitnet-update-button'
             }, 'Update Terms')
