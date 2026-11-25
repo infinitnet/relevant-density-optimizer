@@ -5,7 +5,8 @@
  * Author: Infinitnet
  * Author URI: https://infinitnet.io/
  * Plugin URI: https://infinitnet.io/relevant-density-optimizer/
- * Version: 1.8.1
+ * Version: 1.8.2
+ * Requires at least: 6.6
  * License: GPLv2 or later
  * Text Domain: relevant-density-optimizer
  */
@@ -16,11 +17,18 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('RDOINFINITNET_VERSION', '1.8.1');
+define('RDOINFINITNET_VERSION', '1.8.2');
 
 function rdoinfinitnet_enqueue_block_editor_assets() {
     // Only proceed if user has appropriate permissions
     if (!current_user_can('edit_posts')) {
+        return;
+    }
+
+    // The widgets and Customizer block editors must not load wp-editor (core _doing_it_wrong notice).
+    // The term highlighter is a post editor sidebar, so it is not needed there.
+    $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+    if ($screen && in_array($screen->id, array('widgets', 'customize'), true)) {
         return;
     }
 

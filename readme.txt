@@ -4,7 +4,7 @@ Donate link: https://infinitnet.io/
 Tags: seo, content optimization, keyword density, gutenberg, editor
 Requires at least: 6.6
 Tested up to: 7.2
-Stable tag: 1.8.1
+Stable tag: 1.8.2
 Requires PHP: 7.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -72,6 +72,10 @@ RDO is designed to be lightweight and efficient. The term highlighting feature u
 2. Term highlighting in action
 
 == Changelog ==
+
+= 1.8.2 =
+* Do not load the editor script in the widgets and Customizer block editors (avoids the core wp-editor notice)
+* Plugin header now declares Requires at least: 6.6, matching the readme
 
 = 1.8.1 =
 * WordPress 7.2 compatibility: tested up to 7.2
